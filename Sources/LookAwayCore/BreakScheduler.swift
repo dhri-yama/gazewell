@@ -11,8 +11,18 @@ public final class BreakScheduler: ObservableObject {
     /// The rule that is upcoming (working/headsUp) or running (breaking).
     @Published public private(set) var activeRule: BreakRule
 
+    /// While set and in the future, no break or heads-up appears (user "Pause" from the menu).
+    @Published public var pausedUntil: Date?
+
     public var rules: [BreakRule] { didSet { syncDue() } }
     public var headsUpLead: TimeInterval
+    /// Set by the app each tick: a call, recording, video or fullscreen app is in the way.
+    public var blocked = false
+    /// Set by the app each tick: the user is typing/clicking right now.
+    public var userActive = false
+    /// A break waits at most this long for the user to stop typing.
+    public var maxTypingDeferral: TimeInterval = 30
+    private var deferringSince: Date?
     private let now: () -> Date
     private var due: [String: Date] = [:]
     private var deadline: Date
@@ -31,18 +41,45 @@ public final class BreakScheduler: ObservableObject {
     public var hasUpcoming: Bool { rules.contains { $0.enabled } }
 
     public func tick() {
+        if let p = pausedUntil, p <= now() { pausedUntil = nil }
+        if phase != .breaking && (blocked || pausedUntil != nil) { holdOff() }
         refresh()
+        if phase == .headsUp && TimeInterval(secondsLeft) > headsUpLead { phase = .working }  // idle reset pushed it out
         switch phase {
         case .working where secondsLeft > 0 && TimeInterval(secondsLeft) <= headsUpLead && hasUpcoming: phase = .headsUp
-        case .working, .headsUp: if secondsLeft == 0 && hasUpcoming { startBreak(rule: activeRule) }
+        case .working, .headsUp:
+            guard secondsLeft == 0 && hasUpcoming else { return }
+            // Wait (briefly) for a pause in typing so the break doesn't land mid-sentence.
+            if userActive, now().timeIntervalSince(deferringSince ?? now()) < maxTypingDeferral {
+                deferringSince = deferringSince ?? now()
+                return
+            }
+            startBreak(rule: activeRule)
         case .breaking: if secondsLeft == 0 { endBreak() }
         }
+    }
+
+    /// A stretch of inactivity counts as a break: any rule whose duration fits within it starts over.
+    public func registerIdle(_ idle: TimeInterval) {
+        guard phase != .breaking else { return }
+        let t = now()
+        for r in rules where idle >= r.duration { due[r.id] = t.addingTimeInterval(r.interval) }
+    }
+
+    /// While blocked or paused, anything about to fire is pushed out so a heads-up (not a surprise break) follows.
+    private func holdOff() {
+        let t = now()
+        for r in rules where (due[r.id] ?? t).timeIntervalSince(t) <= headsUpLead {
+            due[r.id] = t.addingTimeInterval(headsUpLead + 1)
+        }
+        if phase == .headsUp { phase = .working }
     }
 
     /// Starts a break now. Scheduled breaks pass the rule that came due; on-demand ones may pass a custom length.
     public func startBreak(rule: BreakRule? = nil, duration custom: TimeInterval? = nil) {
         let rule = rule ?? (phase == .working || phase == .headsUp ? activeRule : rules.first ?? activeRule)
         let length = custom ?? rule.duration
+        deferringSince = nil
         activeRule = rule
         phase = .breaking
         deadline = now().addingTimeInterval(length)

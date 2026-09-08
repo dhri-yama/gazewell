@@ -77,3 +77,58 @@ private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: 
     t += 100; s.tick()
     #expect(s.phase == .working)
 }
+
+@Test func idleCountsAsNaturalBreak() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 100, 20)], headsUpLead: 0, now: { t })
+    t += 90
+    s.registerIdle(10)            // shorter than the break: ignored
+    s.tick(); #expect(s.secondsLeft == 10)
+    s.registerIdle(25)            // long enough: interval restarts
+    s.tick(); #expect(s.secondsLeft == 100)
+}
+
+@Test func blockedDefersThenHeadsUpFollows() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 100, 10)], headsUpLead: 30, now: { t })
+    s.blocked = true
+    t += 100; s.tick()
+    t += 20; s.tick()
+    #expect(s.phase == .working)
+    s.blocked = false
+    t += 1; s.tick()
+    #expect(s.phase == .headsUp)      // a heads-up, not an instant break
+    t += 31; s.tick()
+    #expect(s.phase == .breaking)
+}
+
+@Test func typingDefersBreakUpToLimit() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 5)], headsUpLead: 0, now: { t })
+    s.userActive = true
+    t += 10; s.tick()
+    #expect(s.phase == .working)
+    t += 29; s.tick()
+    #expect(s.phase == .working)
+    t += 2; s.tick()
+    #expect(s.phase == .breaking)
+}
+
+@Test func pauseBlocksUntilExpiry() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 5)], headsUpLead: 0, now: { t })
+    s.pausedUntil = t.addingTimeInterval(60)
+    t += 30; s.tick()
+    #expect(s.phase == .working)
+    t += 31; s.tick()
+    #expect(s.pausedUntil == nil)
+}
+
+@Test func idleDuringHeadsUpCancelsIt() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 100, 20)], headsUpLead: 30, now: { t })
+    t += 80; s.tick()
+    #expect(s.phase == .headsUp)
+    s.registerIdle(25); s.tick()
+    #expect(s.phase == .working)
+}

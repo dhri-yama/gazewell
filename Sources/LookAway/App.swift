@@ -14,7 +14,17 @@ final class AppModel {
         store = SettingsStore(scheduler: scheduler)
         overlay = BreakOverlay(scheduler: scheduler)
         headsUp = HeadsUp(scheduler: scheduler)
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [scheduler] _ in scheduler.tick() }
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
+    }
+
+    private func tick() {
+        let c = store.settings
+        let idle = Blockers.idleSeconds
+        scheduler.userActive = idle < 2
+        scheduler.blocked = (c.pauseForCalls && Blockers.inCall) || (c.pauseForRecording && Blockers.recordingScreen)
+            || (c.pauseForVideo && Blockers.displayKeptAwake) || (c.pauseForFullscreen && Blockers.fullscreenApp)
+        scheduler.registerIdle(idle)
+        scheduler.tick()
     }
 }
 
@@ -27,7 +37,8 @@ struct LookAwayApp: App {
     var body: some Scene {
         MenuBarExtra("LookAway", systemImage: "eye") {
             let m = scheduler.secondsLeft / 60, s = scheduler.secondsLeft % 60
-            Text(!scheduler.hasUpcoming ? "No breaks enabled"
+            Text(scheduler.pausedUntil != nil ? "Paused"
+                 : !scheduler.hasUpcoming ? "No breaks enabled"
                  : scheduler.phase == .breaking ? "On a break" : String(format: "Next break in %d:%02d", m, s))
             Divider()
             Button("Start break now") { scheduler.startBreak() }
@@ -38,6 +49,14 @@ struct LookAwayApp: App {
             }
             Button("Skip next break") { scheduler.endBreak() }
                 .disabled(scheduler.phase == .breaking)
+            if scheduler.pausedUntil != nil {
+                Button("Resume breaks") { scheduler.pausedUntil = nil }
+            } else {
+                Menu("Pause breaks") {
+                    Button("For 1 hour") { scheduler.pausedUntil = Date().addingTimeInterval(3600) }
+                    Button("For 4 hours") { scheduler.pausedUntil = Date().addingTimeInterval(4 * 3600) }
+                }
+            }
             Button("Settings…") { SettingsWindow.show(store: AppModel.shared.store) }.keyboardShortcut(",")
             Button("Quit LookAway") { NSApp.terminate(nil) }.keyboardShortcut("q")
         }

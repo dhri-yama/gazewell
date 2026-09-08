@@ -37,6 +37,18 @@ struct SettingsView: View {
             .tabItem { Label("Breaks", systemImage: "eye") }
 
             Form {
+                Text("Don't interrupt me during").font(.headline)
+                Toggle("Calls and meetings (mic or camera in use)", isOn: $store.settings.pauseForCalls)
+                Toggle("Screen recording", isOn: $store.settings.pauseForRecording)
+                Toggle("Video playback", isOn: $store.settings.pauseForVideo)
+                Toggle("Fullscreen apps and games", isOn: $store.settings.pauseForFullscreen)
+                Text("Breaks also wait for you to stop typing, and time away from the keyboard counts as a break.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            .padding(24)
+            .tabItem { Label("Smart Pause", systemImage: "pause.circle") }
+
+            Form {
                 Stepper(value: $store.settings.headsUpLead, in: 5...120, step: 5) {
                     Text("Heads-up \(Int(store.settings.headsUpLead)) sec before a break")
                 }
@@ -44,6 +56,6 @@ struct SettingsView: View {
             .padding(24)
             .tabItem { Label("General", systemImage: "gearshape") }
         }
-        .frame(width: 460, height: 420)
+        .frame(width: 480, height: 440)
     }
 }
