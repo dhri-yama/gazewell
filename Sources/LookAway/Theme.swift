@@ -9,7 +9,7 @@ enum Theme {
     static let accent = Color(red: 1.0, green: 0.478, blue: 0.349)     // #FF7A59
 
     static let sky = LinearGradient(
-        stops: [.init(color: ink, location: 0), .init(color: dusk, location: 0.6), .init(color: horizon, location: 1)],
+        stops: [.init(color: ink, location: 0), .init(color: dusk, location: 0.78), .init(color: horizon, location: 1)],
         startPoint: .top, endPoint: .bottom)
 
     static let countdown = Font.system(size: 160, weight: .ultraLight, design: .rounded)

@@ -14,6 +14,7 @@ private struct HeadsUpCard: View {
             }
             Button("Start now") { scheduler.startBreak() }
                 .buttonStyle(.borderedProminent).tint(Theme.accent)
+                .keyboardShortcut(.return, modifiers: [.command, .option])
             Menu("Later") {
                 ForEach([1, 5, 15], id: \.self) { m in
                     Button("In \(m) min") { scheduler.postpone(by: TimeInterval(m * 60)) }
@@ -33,7 +34,7 @@ private struct CursorPill: View {
             .font(.system(.callout, design: .rounded).weight(.medium)).monospacedDigit()
             .foregroundStyle(.white)
             .padding(.horizontal, 10).padding(.vertical, 4)
-            .background(Theme.ink.opacity(0.7), in: Capsule())
+            .background(Theme.ink.opacity(0.85), in: Capsule())
             .accessibilityHidden(true)
     }
 }
@@ -78,13 +79,14 @@ final class HeadsUp {
         let pill = makePanel(CursorPill(scheduler: scheduler), activating: false)
         pill.ignoresMouseEvents = true
         pill.hasShadow = false
-        pill.alphaValue = 0.6
         pill.orderFrontRegardless()
         self.pill = pill
-        follow = Timer.scheduledTimer(withTimeInterval: 1.0 / 30, repeats: true) { [weak pill] _ in
+        let t = Timer(timeInterval: 1.0 / 30, repeats: true) { [weak pill] _ in
             let m = NSEvent.mouseLocation
             pill?.setFrameOrigin(NSPoint(x: m.x + 16, y: m.y - 32))
         }
+        RunLoop.main.add(t, forMode: .common)   // default mode alone would freeze it while a menu is open
+        follow = t
     }
 
     private func hide() {

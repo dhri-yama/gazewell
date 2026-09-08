@@ -40,9 +40,9 @@ private struct PlannedEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Toggle("", isOn: $rule.enabled).labelsHidden()
+                Toggle("Enabled", isOn: $rule.enabled).labelsHidden()
                 TextField("Name (e.g. Lunch)", text: $rule.name).textFieldStyle(.roundedBorder)
-                DatePicker("", selection: time, displayedComponents: .hourAndMinute).labelsHidden()
+                DatePicker("Start time", selection: time, displayedComponents: .hourAndMinute).labelsHidden()
                 Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }
                     .buttonStyle(.borderless).accessibilityLabel("Delete planned break")
             }
@@ -100,13 +100,15 @@ struct SettingsView: View {
 
     var body: some View {
         TabView {
-            Form {
-                ForEach($store.settings.rules) { $rule in
-                    RuleEditor(rule: $rule)
-                    Divider()
+            ScrollView {
+                VStack(alignment: .leading) {
+                    ForEach($store.settings.rules) { $rule in
+                        RuleEditor(rule: $rule)
+                        Divider()
+                    }
                 }
+                .padding(24)
             }
-            .padding(24)
             .tabItem { Label("Breaks", systemImage: "eye") }
 
             AppearanceTab(store: store)
@@ -155,6 +157,6 @@ struct SettingsView: View {
             .padding(24)
             .tabItem { Label("General", systemImage: "gearshape") }
         }
-        .frame(width: 480, height: 440)
+        .frame(width: 480, height: 520)
     }
 }
