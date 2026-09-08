@@ -37,7 +37,8 @@ enum Snapshots {
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
-            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav), CGSize(width: 960, height: 680))
+            let tall: CGFloat = pane == .screenBreaks ? 1500 : pane == .breakScreen ? 1100 : 680
+            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall), CGSize(width: 960, height: tall))
         }
     }
 }

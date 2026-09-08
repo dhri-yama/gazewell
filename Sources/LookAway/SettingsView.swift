@@ -85,6 +85,7 @@ struct SettingsView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var stats: StatsStore
     @ObservedObject var nav: SettingsNav
+    var height: CGFloat = 680
 
     var body: some View {
         HStack(spacing: 0) {
@@ -109,14 +110,14 @@ struct SettingsView: View {
                 PaneHeader(pane: nav.pane).padding(.top, 26)
                 Rectangle().fill(Theme.hairline).frame(height: 1)
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 12) { content }
-                        .padding(.horizontal, 28).padding(.vertical, 18)
+                    VStack(alignment: .leading, spacing: 24) { content }
+                        .padding(.horizontal, 28).padding(.vertical, 22)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .background(Theme.windowBg)
         }
-        .frame(width: 960, height: 680)
+        .frame(width: 960, height: height)
         .environment(\.colorScheme, .dark)
     }
 

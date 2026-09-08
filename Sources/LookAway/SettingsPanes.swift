@@ -15,16 +15,15 @@ struct GeneralPane: View {
             ToggleRow(title: "Show time in the menu bar", subtitle: "Countdown to your next break next to the icon", symbol: "menubar.rectangle",
                       isOn: $store.settings.showTimeInMenuBar)
         }
-        SectionTitle(text: "Data")
-        Card {
+        Block(title: "Data") { Card {
             Row(title: "Reset all settings", subtitle: "Restores every option to its default") {
-                Button("Reset") { store.reset() }.buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                Button("Reset") { store.reset() }.buttonStyle(ControlButton())
             }
             Sep()
             Row(title: "Clear stats", subtitle: "Deletes your break history") {
-                Button("Clear") { stats.clear() }.buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                Button("Clear") { stats.clear() }.buttonStyle(ControlButton())
             }
-        }
+        } }
     }
 }
 
@@ -72,16 +71,14 @@ private struct PlannedEditor: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 10) {
-                Toggle("Enabled", isOn: $rule.enabled).labelsHidden().toggleStyle(.switch)
+                Switch(label: "Enabled", isOn: $rule.enabled)
                 TextField("Name (e.g. Lunch)", text: $rule.name).textFieldStyle(FieldStyle())
-                DatePicker("Start time", selection: timeBinding($rule.minuteOfDay), displayedComponents: .hourAndMinute).labelsHidden()
-                Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }
-                    .buttonStyle(.borderless).accessibilityLabel("Delete planned break")
+                TimeField(label: "Start", minutes: $rule.minuteOfDay)
+                IconButton(symbol: "trash", label: "Delete planned break", action: onDelete)
             }
             HStack(spacing: 10) {
-                Picker("Length", selection: Binding(get: { Int(rule.duration) }, set: { rule.duration = TimeInterval($0) })) {
-                    ForEach(durationOptions([300, 600, 900, 1800, 2700, 3600], including: Int(rule.duration)), id: \.0) { Text($0.1).tag($0.0) }
-                }.labelsHidden().fixedSize()
+                Dropdown(label: "Length", selection: Binding(get: { Int(rule.duration) }, set: { rule.duration = TimeInterval($0) }),
+                         options: durationOptions([300, 600, 900, 1800, 2700, 3600], including: Int(rule.duration)))
                 TextField("Message", text: $rule.message).textFieldStyle(FieldStyle())
             }
         }
@@ -97,7 +94,7 @@ struct ScreenBreaksPane: View {
 
     var body: some View {
         Card { ToggleRow(title: "Screen breaks", subtitle: "Regular breaks to rest your eyes", symbol: "leaf.fill", isOn: $store.settings.breaksEnabled) }
-        SectionTitle(text: "General")
+        Block(title: "General") {
         Card {
             DurationRow(title: "Show breaks after", subtitle: "Of focused screen time", seconds: $store.settings.breakEvery,
                         presets: [600, 900, 1200, 1500, 1800, 2700, 3600, 5400, 7200])
@@ -125,9 +122,9 @@ struct ScreenBreaksPane: View {
                 Sep()
                 Row(title: "From") {
                     HStack(spacing: 8) {
-                        DatePicker("Start", selection: timeBinding($store.settings.officeHours.start), displayedComponents: .hourAndMinute).labelsHidden()
+                        TimeField(label: "Start", minutes: $store.settings.officeHours.start)
                         Text("to").foregroundStyle(Theme.textDim)
-                        DatePicker("End", selection: timeBinding($store.settings.officeHours.end), displayedComponents: .hourAndMinute).labelsHidden()
+                        TimeField(label: "End", minutes: $store.settings.officeHours.end)
                     }
                 }
                 Sep()
@@ -147,8 +144,8 @@ struct ScreenBreaksPane: View {
                 }
             }
         }
-        SectionTitle(text: "Break enforcement")
-        Card {
+        }
+        Block(title: "Break enforcement") { Card {
             HStack(alignment: .top, spacing: 16) {
                 ForEach(Enforcement.allCases, id: \.self) { level in
                     EnforcementTile(level: level, selected: store.settings.enforcement == level) { store.settings.enforcement = level }
@@ -158,18 +155,16 @@ struct ScreenBreaksPane: View {
             Sep()
             MenuRow(title: "Snoozes allowed per day", selection: $store.settings.snoozesPerDay,
                     options: [(0, "None"), (1, "1"), (2, "2"), (3, "3"), (5, "5"), (10, "10"), (-1, "Unlimited")])
-        }
-        SectionTitle(text: "More")
-        Card {
+        } }
+        Block(title: "More") { Card {
             MenuRow(title: "Double escape action on break screen", selection: $store.settings.doubleEscape,
                     options: EscAction.allCases.map { ($0, $0.title) })
             Sep()
             ToggleRow(title: "Let me \u{201C}End break\u{201D} early if nearly done", isOn: $store.settings.allowEarlyEnd)
             Sep()
             ToggleRow(title: "Lock my Mac automatically when a break starts", isOn: $store.settings.lockOnBreakStart)
-        }
-        SectionTitle(text: "Planned breaks")
-        Card {
+        } }
+        Block(title: "Planned breaks") { Card {
             ForEach($store.settings.planned) { $rule in
                 PlannedEditor(rule: $rule) { store.settings.planned.removeAll { $0.id == rule.id } }
                 Sep()
@@ -178,9 +173,9 @@ struct ScreenBreaksPane: View {
                 Button("Add planned break") {
                     store.settings.planned.append(BreakRule(kind: .planned, interval: 86400, duration: 1800,
                                                             message: "Step away and eat something.", name: "Lunch"))
-                }.buttonStyle(CapsuleButton(fill: Theme.accent, bold: true))
+                }.buttonStyle(ControlButton(primary: true))
             }
-        }
+        } }
     }
 }
 
@@ -208,8 +203,7 @@ struct BreakScreenPane: View {
     }
 
     var body: some View {
-        SectionTitle(text: "Theme")
-        Card {
+        Block(title: "Theme") { Card {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 14)], spacing: 16) {
                 ForEach(BreakTheme.allCases, id: \.self) { swatch($0) }
             }
@@ -218,30 +212,29 @@ struct BreakScreenPane: View {
                 Sep()
                 Row(title: store.settings.imagePath.isEmpty ? "No image chosen" : (store.settings.imagePath as NSString).lastPathComponent) {
                     Button("Choose…") { chooseFile(types: [.image]) { store.settings.imagePath = $0 } }
-                        .buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                        .buttonStyle(ControlButton())
                 }
             }
-        }
-        SectionTitle(text: "Display")
-        Card {
+        } }
+        Block(title: "Display") { Card {
             ToggleRow(title: "Show current time", subtitle: "\u{201C}Current time is 14:58\u{201D} at the top", isOn: $store.settings.showClock)
             Sep()
             ToggleRow(title: "Show Lock Screen button", isOn: $store.settings.showLockButton)
-        }
-        SectionTitle(text: "Messages")
-        Card {
+        } }
+        Block(title: "Messages") {
+            Card {
             VStack(alignment: .leading, spacing: 8) {
-                Text("One per line. Write \u{201C}Title | Subtitle\u{201D} to set both lines; a single phrase is used as the subtitle. Leave empty for the built-in messages.")
-                    .font(.system(size: 12)).foregroundStyle(Theme.textDim)
                 TextEditor(text: $store.settings.customMessages)
                     .scrollContentBackground(.hidden).font(.system(size: 13)).foregroundStyle(.white)
                     .frame(height: 110).padding(6)
                     .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
             }
             .padding(16)
+            }
+            Note("One per line. Write \u{201C}Title | Subtitle\u{201D} to set both lines; a single phrase is used as the subtitle. Leave empty for the built-in messages.")
         }
         Button("Preview break screen") { store.scheduler.startBreak(duration: 8) }
-            .buttonStyle(CapsuleButton(fill: Theme.accent, bold: true))
+            .buttonStyle(ControlButton(primary: true))
     }
 }
 
@@ -250,8 +243,8 @@ struct BreakScreenPane: View {
 struct SmartPausePane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
-        Text("Breaks stay out of your way. LookAway holds the break back while any of these is happening.")
-            .font(.system(size: 13)).foregroundStyle(Theme.textDim)
+        Block {
+        Note("Breaks stay out of your way. LookAway holds the break back while any of these is happening.")
         Card {
             ToggleRow(title: "Calls and meetings", subtitle: "Microphone or camera in use", symbol: "phone.fill", isOn: $store.settings.pauseForCalls)
             Sep()
@@ -261,12 +254,12 @@ struct SmartPausePane: View {
             Sep()
             ToggleRow(title: "Fullscreen apps and games", symbol: "arrow.up.left.and.arrow.down.right", isOn: $store.settings.pauseForFullscreen)
         }
-        SectionTitle(text: "Natural pauses")
-        Card {
+        }
+        Block(title: "Natural pauses") { Card {
             ToggleRow(title: "Count time away as a break", subtitle: "If you step away for as long as a break, the timer restarts",
                       symbol: "moon.zzz.fill", isOn: $store.settings.idleCountsAsBreak)
         }
-        Text("Breaks also wait up to 30 seconds for you to stop typing.").font(.system(size: 12)).foregroundStyle(Theme.textDim)
+        Note("Breaks also wait up to 30 seconds for you to stop typing.") }
     }
 }
 
@@ -275,8 +268,8 @@ struct SmartPausePane: View {
 struct WellnessPane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
-        Text("Gentle one-line reminders that appear at the top of your screen. They never interrupt with a full break.")
-            .font(.system(size: 13)).foregroundStyle(Theme.textDim)
+        Block {
+        Note("Gentle one-line reminders that appear at the top of your screen. They never interrupt with a full break.")
         ForEach($store.settings.nudges) { $n in
             Card {
                 ToggleRow(title: n.name, symbol: n.symbol, isOn: $n.enabled)
@@ -291,10 +284,11 @@ struct WellnessPane: View {
                     }
                     Sep()
                     Row(title: "Try it") {
-                        Button("Show now") { AppModel.shared.nudges.show(n) }.buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                        Button("Show now") { AppModel.shared.nudges.show(n) }.buttonStyle(ControlButton())
                     }
                 }
             }
+        }
         }
     }
 }
@@ -321,8 +315,8 @@ struct StatsPane: View {
         let today = stats.stats.day(Date())
         let week = stats.stats.recent(7)
         let peak = max(1, week.map(\.stats.taken).max() ?? 1)
-        SectionTitle(text: "Today")
-        HStack(spacing: 12) {
+        Block(title: "Today") {
+        HStack(spacing: 10) {
             StatTile(value: today.taken, label: "Breaks taken")
             StatTile(value: today.skipped, label: "Skipped")
             StatTile(value: today.snoozed, label: "Snoozed")
@@ -330,8 +324,8 @@ struct StatsPane: View {
         Card { Row(title: "Current streak", subtitle: "Days in a row with at least one break taken", symbol: "flame.fill", tile: [0xE08A20, 0xF05030]) {
             Text("\(stats.stats.streak()) day\(stats.stats.streak() == 1 ? "" : "s")").foregroundStyle(.white).font(.system(size: 14, weight: .semibold))
         } }
-        SectionTitle(text: "Last 7 days")
-        Card {
+        }
+        Block(title: "Last 7 days") { Card {
             HStack(alignment: .bottom, spacing: 14) {
                 ForEach(0..<week.count, id: \.self) { i in
                     VStack(spacing: 6) {
@@ -345,7 +339,7 @@ struct StatsPane: View {
                 }
             }
             .frame(height: 150, alignment: .bottom).padding(16)
-        }
+        } }
     }
 }
 
@@ -354,6 +348,7 @@ struct StatsPane: View {
 struct AlertsPane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
+        Block {
         Card {
             ToggleRow(title: "Heads-up before a break", subtitle: "A card with Start break now and snooze options", symbol: "bell.fill", isOn: $store.settings.headsUpEnabled)
             if store.settings.headsUpEnabled {
@@ -363,8 +358,8 @@ struct AlertsPane: View {
                 ToggleRow(title: "Countdown next to the cursor", subtitle: "A small timer that follows your pointer", isOn: $store.settings.cursorCountdown)
             }
         }
-        Text("The +1m, +5m and +15m buttons use your daily snooze allowance (Screen Breaks).")
-            .font(.system(size: 12)).foregroundStyle(Theme.textDim)
+        Note("The +1m, +5m and +15m buttons use your daily snooze allowance (Screen Breaks).")
+        }
     }
 }
 
@@ -383,12 +378,10 @@ private struct SoundRow: View {
     var body: some View {
         Row(title: title) {
             HStack(spacing: 8) {
-                Picker(title, selection: $choice) { ForEach(options, id: \.0) { Text($0.1).tag($0.0) } }
-                    .labelsHidden().pickerStyle(.menu).fixedSize()
-                Button { Chime.play(choice) } label: { Image(systemName: "play.fill") }
-                    .buttonStyle(.borderless).disabled(choice.isEmpty).accessibilityLabel("Play \(title)")
+                Dropdown(label: title, selection: $choice, options: options)
+                IconButton(symbol: "play.fill", label: "Play \(title)", enabled: !choice.isEmpty) { Chime.play(choice) }
                 Button("File…") { chooseFile(types: [.audio]) { choice = "file:" + $0 } }
-                    .buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                    .buttonStyle(ControlButton())
             }
         }
     }
@@ -411,9 +404,10 @@ struct ShortcutsPane: View {
     @ObservedObject var store: SettingsStore
     private func keys(_ s: String) -> some View {
         Text(s).font(.system(size: 13, weight: .medium, design: .rounded)).foregroundStyle(.white)
-            .padding(.horizontal, 10).padding(.vertical, 5).background(Color.white.opacity(0.1), in: RoundedRectangle(cornerRadius: 7))
+            .padding(.horizontal, 10).frame(height: Control.height).background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
     }
     var body: some View {
+        Block {
         Card { ToggleRow(title: "Global keyboard shortcuts", subtitle: "Work from any app", symbol: "command", isOn: $store.settings.shortcutsEnabled) }
         Card {
             Row(title: "Start a break now") { keys("⌃⌥B") }
@@ -424,6 +418,7 @@ struct ShortcutsPane: View {
             Sep()
             Row(title: "Leave a break (double press)") { keys("Esc Esc") }
         }
+        }
     }
 }
 
@@ -432,8 +427,8 @@ struct ShortcutsPane: View {
 struct AutomationPane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
-        Text("Run a Shortcut or an AppleScript file when a break starts or ends. Enter a Shortcut's name, or the path to a .scpt or .applescript file.")
-            .font(.system(size: 13)).foregroundStyle(Theme.textDim)
+        Block {
+        Note("Run a Shortcut or an AppleScript file when a break starts or ends. Enter a Shortcut's name, or the path to a .scpt or .applescript file.")
         Card {
             Row(title: "When a break starts", symbol: "play.fill", tile: [0xE08A20, 0xF0B030]) {
                 TextField("Shortcut name or script path", text: $store.settings.startHook).textFieldStyle(FieldStyle()).frame(width: 300)
@@ -442,6 +437,7 @@ struct AutomationPane: View {
             Row(title: "When a break ends", symbol: "stop.fill", tile: [0xE08A20, 0xF0B030]) {
                 TextField("Shortcut name or script path", text: $store.settings.endHook).textFieldStyle(FieldStyle()).frame(width: 300)
             }
+        }
         }
     }
 }
