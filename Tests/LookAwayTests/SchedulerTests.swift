@@ -156,3 +156,44 @@ private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: 
     t += 3 * 3600; s.tick()           // Mac slept through noon
     #expect(s.phase == .working)
 }
+
+@Test func everyThirdEyesBreakIsLong() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 5)], headsUpLead: 0, now: { t })
+    s.longBreakEvery = 3; s.longBreakDuration = 60
+    var lengths: [Int] = []
+    for _ in 0..<3 { t += 10; s.tick(); lengths.append(s.breakLength); t += 100; s.tick() }
+    #expect(lengths == [5, 5, 60])
+}
+
+@Test func eventsAreReported() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 5)], headsUpLead: 0, now: { t })
+    var events: [BreakScheduler.Event] = []
+    s.onEvent = { events.append($0) }
+    t += 10; s.tick(); t += 5; s.tick()          // taken
+    t += 10; s.tick(); s.endBreak()               // skipped
+    s.postpone(by: 60)                            // snoozed
+    #expect(events == [.taken, .skipped, .snoozed])
+}
+
+@Test func officeHoursIncludingOvernightRange() {
+    var cal = Calendar(identifier: .gregorian); cal.timeZone = TimeZone(identifier: "UTC")!
+    var h = OfficeHours(); h.enabled = true; h.start = 8 * 60; h.end = 2 * 60; h.days = [2]   // Mondays 08:00 to 02:00
+    func d(_ day: Int, _ hour: Int) -> Date { cal.date(from: DateComponents(timeZone: cal.timeZone, year: 2026, month: 1, day: day, hour: hour))! }
+    #expect(h.contains(d(5, 9), calendar: cal))      // Mon 09:00
+    #expect(h.contains(d(6, 1), calendar: cal))      // Tue 01:00 (Monday's shift)
+    #expect(!h.contains(d(6, 3), calendar: cal))     // Tue 03:00
+    #expect(!h.contains(d(7, 9), calendar: cal))     // Wed
+}
+
+@Test func statsCountAndStreak() {
+    let cal = Calendar.current
+    let today = Date()
+    var st = Stats()
+    st.record(.taken, on: today); st.record(.skipped, on: today)
+    st.record(.taken, on: cal.date(byAdding: .day, value: -1, to: today)!)
+    #expect(st.day(today).taken == 1 && st.day(today).skipped == 1)
+    #expect(st.streak() == 2)
+    #expect(st.recent(7).count == 7)
+}

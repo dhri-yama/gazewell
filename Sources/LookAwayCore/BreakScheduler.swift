@@ -4,12 +4,16 @@ import Foundation
 /// unit tested; the app drives it with a 1s timer calling `tick()`.
 public final class BreakScheduler: ObservableObject {
     public enum Phase: Equatable { case working, headsUp, breaking }
+    public enum Event { case taken, skipped, snoozed }
 
     @Published public private(set) var phase: Phase = .working
     /// Seconds until the next phase change (break start while working/headsUp, break end while breaking).
     @Published public private(set) var secondsLeft: Int = 0
     /// The rule that is upcoming (working/headsUp) or running (breaking).
     @Published public private(set) var activeRule: BreakRule
+    /// Length in seconds of the running break, and whether it is one of the periodic long breaks.
+    @Published public private(set) var breakLength: Int = 0
+    @Published public private(set) var isLongBreak = false
 
     /// While set and in the future, no break or heads-up appears (user "Pause" from the menu).
     @Published public var pausedUntil: Date?
@@ -18,6 +22,12 @@ public final class BreakScheduler: ObservableObject {
     public var headsUpLead: TimeInterval
     /// Set by the app each tick: a call, recording, video or fullscreen app is in the way.
     public var blocked = false
+    /// Every Nth scheduled eyes break becomes a long one (0 = never).
+    public var longBreakEvery = 0
+    public var longBreakDuration: TimeInterval = 300
+    /// Called when a break is taken in full, skipped, or snoozed (for stats).
+    public var onEvent: ((Event) -> Void)?
+    private var eyesBreaksStarted = 0
     /// Set by the app each tick: the user is typing/clicking right now.
     public var userActive = false
     /// A break waits at most this long for the user to stop typing.
@@ -38,6 +48,8 @@ public final class BreakScheduler: ObservableObject {
     }
 
     /// False when every rule is disabled, so the UI can say so instead of showing a meaningless countdown.
+    public var elapsed: Int { max(0, breakLength - secondsLeft) }
+
     public var hasUpcoming: Bool { rules.contains { $0.enabled } }
 
     public func tick() {
@@ -55,7 +67,7 @@ public final class BreakScheduler: ObservableObject {
                 return
             }
             startBreak(rule: activeRule)
-        case .breaking: if secondsLeft == 0 { endBreak() }
+        case .breaking: if secondsLeft == 0 { finishBreak(.taken) }
         }
     }
 
@@ -78,8 +90,14 @@ public final class BreakScheduler: ObservableObject {
     /// Starts a break now. Scheduled breaks pass the rule that came due; on-demand ones may pass a custom length.
     public func startBreak(rule: BreakRule? = nil, duration custom: TimeInterval? = nil) {
         let rule = rule ?? (phase == .working || phase == .headsUp ? activeRule : rules.first ?? activeRule)
-        let length = custom ?? rule.duration
+        var length = custom ?? rule.duration
+        isLongBreak = false
+        if custom == nil, rule.kind == .eyes, longBreakEvery > 0 {
+            eyesBreaksStarted += 1
+            if eyesBreaksStarted % longBreakEvery == 0 { length = longBreakDuration; isLongBreak = true }
+        }
         deferringSince = nil
+        breakLength = Int(length)
         activeRule = rule
         phase = .breaking
         deadline = now().addingTimeInterval(length)
@@ -88,7 +106,10 @@ public final class BreakScheduler: ObservableObject {
 
     /// Ends a break early or skips the upcoming one. The active rule restarts its full interval, and so does any
     /// rule that was due by now (a long break covers shorter ones).
-    public func endBreak() {
+    public func endBreak() { finishBreak(.skipped) }
+
+    private func finishBreak(_ event: Event) {
+        onEvent?(event)
         let t = now()
         due[activeRule.id] = activeRule.nextDue(after: t)
         for r in rules where (due[r.id] ?? t) <= t { due[r.id] = r.nextDue(after: t) }
@@ -98,6 +119,7 @@ public final class BreakScheduler: ObservableObject {
 
     /// Pushes the upcoming break out by `seconds`. Short delays re-enter the heads-up lead on a later tick.
     public func postpone(by seconds: TimeInterval) {
+        onEvent?(.snoozed)
         due[activeRule.id] = now().addingTimeInterval(seconds)
         phase = .working
         refresh()
