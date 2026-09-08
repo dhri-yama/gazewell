@@ -24,7 +24,7 @@ Full parity with lookaway.com minus iOS sync, Live Activities, App Store/Setapp.
 
 ## Brand Commitments
 
-Custom branded look (user's choice), not a mimic of lookaway.com and not stock system chrome. Calm, wellness tone. Name: LookAway (working title).
+Faithful to the real LookAway look (user supplied reference screenshots, revision 2). Calm, wellness tone. Name: LookAway (working title).
 
 ## Evidence on Hand
 

@@ -1,30 +1,35 @@
-# Design direction (shape brief)
+# Design direction (revision 2: match real LookAway)
 
-Mode: Operate (settings, menu, heads-up) + one Experience-like moment (break overlay).
+The user supplied LookAway reference screenshots and asked for the same look plus more features. This replaces the earlier "Dusk window" direction. Brand commitment in PRODUCT.md changes from "custom branded" to "faithful to LookAway's look".
 
-## World: "Dusk window"
-The break overlay is a soft twilight sky you look out of: deep indigo fading to warm peach at the horizon, slow-drifting, grain-free. Settings and menu stay calmer and more neutral so the overlay is the one expressive moment.
+Mode: Operate (settings, menu, heads-up) + one Experience moment (break screen).
 
-## Break overlay (focal moment)
-- Full screen on every display, fades in 400ms (instant under Reduce Motion).
-- Centered: breathing ring (4s in / 4s out), inside it the remaining seconds in SF Rounded, huge, light weight. Above the ring: break type label (small caps). Below: one custom message line.
-- Bottom center: quiet "Skip" text button (Esc also skips). No other chrome.
-- Background: gradient by default; user image/wallpaper gets a dark scrim so text passes 4.5:1.
+## Break screen
+- Full screen, dark blurred organic backdrop: soft colour blobs (default olive/amber on near-black) drifting slowly; static under Reduce Motion.
+- Top: "Current time is HH:MM" (small, dim, time in brighter weight).
+- Centre stack: big bold title ("Catch a quick rest"), regular subtitle, 400pt hairline divider, dim `mm:ss` countdown.
+- Bottom: pills **Skip** (icon `forward` / progress ring while locked) and **Lock Screen**, then "Press Esc twice to skip".
+- Enforcement: Casual (skip anytime), Balanced (Skip unlocks after 5s), Hardcore (no skip; End break only near the end if allowed).
+- No breathing ring, no coral accent.
 
-## Heads-up panel
-Small rounded card, top-right, vibrancy material. Title "Break in 30s", primary "Start now", secondary menu "Later: 1 / 5 / 15 min". Auto-dismisses into the break. Cursor-following countdown is a tiny pill, 60% opacity.
+## Heads-up card
+Dark translucent rounded card: timer icon tile, bold `00:40`, line "Almost time. Your eyes will appreciate this.", then orange pill **Start break now** and outline pills **+1m +5m +15m**. Cursor-following pill: leaf icon + "Short break in 5".
+
+## Wellness nudges
+Small toast, top centre, icon + one line, auto-dismiss.
+
+## Settings window
+Dark, sidebar + detail (not tabs). Sidebar groups: General · Focus & Wellbeing (Screen Breaks, Smart Pause, Wellness Reminders, Stats) · Behavior & Feedback (Alerts / Nudges, Sounds, Keyboard Shortcuts) · Integrations (Automation) · LookAway (About). Each item has a rounded-square gradient icon tile with a white SF symbol. Detail: title with tile, section headers, rounded grouped cards of rows (label left, control right, hairline dividers). Enforcement shown as three selectable preview tiles.
 
 ## Menu bar
-Template icon (eye). Title shows time-to-next break only when enabled. Menu: status line, Start break now, Skip next, Pause for…, Settings…, Quit.
-
-## Settings
-Standard macOS Settings tabs (Breaks, Planned, Smart Pause, Appearance, Automation, General). Native controls; brand shows only as the accent colour and previews of the overlay.
+Popover (window style): header with next-break countdown and elapsed bar, action row (Start break, Skip next, Pause), then Settings and Quit. Optional time in the menu bar title.
 
 ## Tokens (Theme.swift)
-- Ink indigo #1B1B3A, dusk violet #4A3F8F, horizon peach #FFB88C, glow #FFE3CF, accent coral #FF7A59.
-- Type: countdown `.system(size: 160, weight: .ultraLight, design: .rounded)`; label `.caption` uppercase tracking; message `.title3`.
-- Spacing scale 4/8/12/16/24/40. Radii 12 (cards), full (pills, ring).
-- Motion: ease-in-out 0.4s; breathing 4s; all disabled by Reduce Motion.
+- Window bg #171826, sidebar #1D1E30, card #252739, hairline white 8%, text white / white 60%.
+- Olive blobs #8C8446, #5A5A32, base #141A14. Other themes: Dusk, Ocean, Rose, Slate.
+- Accent orange #FF6B2C (Start break now), toggle blue system.
+- Sidebar tile gradients: pink/magenta, red/orange, orange/yellow, yellow.
+- Type: SF Pro Rounded not used; title 64 bold, subtitle 28 regular, countdown 64 semibold dim.
 
 ## Anti-goals
-No stock-photo wellness cliches, no emoji, no confetti, no sound by default, no counters/streak guilt.
+No confetti, no streak guilt copy, no emoji.
