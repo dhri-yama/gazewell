@@ -51,7 +51,10 @@ struct MenuPopover: View {
     private var paused: Bool { scheduler.pausedUntil != nil }
     private var clock: String { String(format: "%d:%02d", scheduler.secondsLeft / 60, scheduler.secondsLeft % 60) }
 
+    private var off: Bool { !store.settings.enabled }
+
     private var heading: String {
+        if off { return "LookAway is off" }
         if paused { return "Breaks are paused" }
         if !scheduler.hasUpcoming { return "No breaks scheduled" }
         switch scheduler.phase {
@@ -73,7 +76,9 @@ struct MenuPopover: View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
                 Text(heading).font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.65))
-                if scheduler.hasUpcoming && !paused {
+                if off {
+                    Text("Off").font(.system(size: 52, weight: .bold)).foregroundStyle(.white.opacity(0.5))
+                } else if scheduler.hasUpcoming && !paused {
                     Text(clock).font(.system(size: 52, weight: .bold)).monospacedDigit().foregroundStyle(.white)
                 } else {
                     Text(paused ? "Paused" : "—").font(.system(size: 52, weight: .bold)).foregroundStyle(.white.opacity(0.5))
@@ -94,6 +99,9 @@ struct MenuPopover: View {
 
             Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
             VStack(spacing: 2) {
+                if off {
+                    RowButton(title: "Turn LookAway on", symbol: "power", shortcut: "⌃⌥P") { store.settings.enabled = true }
+                } else {
                 RowButton(title: "Start break now", symbol: "play.fill", shortcut: "⌃⌥B") { dismissPopover(); scheduler.startBreak() }
                 RowButton(title: "Skip next break", symbol: "forward.fill", shortcut: "⌃⌥S") { dismissPopover(); scheduler.endBreak() }
                     .disabled(scheduler.phase == .breaking).opacity(scheduler.phase == .breaking ? 0.4 : 1)
@@ -106,6 +114,7 @@ struct MenuPopover: View {
                         Button("Until I turn it back on") { scheduler.pausedUntil = .distantFuture }
                     } label: { RowLabel(title: "Pause breaks", symbol: "pause.fill", trailing: nil, chevron: true) }
                     .menuStyle(.button).menuIndicator(.hidden).buttonStyle(.plain)
+                }
                 }
             }
             .padding(10)

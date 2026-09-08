@@ -28,6 +28,8 @@ public final class BreakScheduler: ObservableObject {
     /// Called when a break is taken in full, skipped, or snoozed (for stats).
     public var onEvent: ((Event) -> Void)?
     private var eyesBreaksStarted = 0
+    /// Master switch. When false nothing fires: no heads-up, no breaks (a running one ends), and intervals keep being pushed out.
+    public var enabled = true
     /// Set by the app each tick: a call is on. Unlike `blocked` (which delays), the break is dropped and its interval restarts;
     /// a break already on screen ends. Planned breaks are only delayed.
     public var skipForCall = false
@@ -56,6 +58,12 @@ public final class BreakScheduler: ObservableObject {
     public var hasUpcoming: Bool { rules.contains { $0.enabled } }
 
     public func tick() {
+        if !enabled {
+            if phase == .breaking { finishBreak(nil) }
+            holdOff()
+            refresh()
+            return
+        }
         if let p = pausedUntil, p <= now() { pausedUntil = nil }
         if phase == .breaking && skipForCall { finishBreak(nil) }
         if phase != .breaking && skipForCall { dropDue() }

@@ -237,3 +237,18 @@ private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: 
     t += 5; s.tick()
     #expect(s.phase == .breaking || s.secondsLeft <= 1)   // still due once the call ends (not pushed to tomorrow)
 }
+
+@Test func disabledSchedulerNeverFiresAndEndsRunningBreak() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 20)], headsUpLead: 5, now: { t })
+    t += 10; s.tick()
+    #expect(s.phase == .breaking)
+    s.enabled = false
+    t += 1; s.tick()
+    #expect(s.phase == .working)
+    t += 500; s.tick()
+    #expect(s.phase == .working)      // no break however long it sits
+    s.enabled = true
+    t += 100; s.tick()
+    #expect(s.phase != .working || s.secondsLeft <= 5)   // resumes normally
+}

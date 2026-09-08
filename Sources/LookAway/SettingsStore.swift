@@ -98,6 +98,7 @@ struct FontPreset {
 }
 
 struct AppSettings: Codable, Equatable {
+    var enabled = true                     // master switch for everything
     // Screen breaks
     var breaksEnabled = true
     var breakEvery: TimeInterval = 20 * 60
@@ -150,7 +151,7 @@ struct AppSettings: Codable, Equatable {
     init(from d: Decoder) throws {
         let c = try d.container(keyedBy: CodingKeys.self)
         func v<T: Decodable>(_ k: CodingKeys, _ def: T) -> T { (try? c.decodeIfPresent(T.self, forKey: k)) ?? def }
-        breaksEnabled = v(.breaksEnabled, breaksEnabled); breakEvery = v(.breakEvery, breakEvery)
+        enabled = v(.enabled, enabled); breaksEnabled = v(.breaksEnabled, breaksEnabled); breakEvery = v(.breakEvery, breakEvery)
         breakDuration = v(.breakDuration, breakDuration); longBreakEvery = v(.longBreakEvery, longBreakEvery)
         longBreakDuration = v(.longBreakDuration, longBreakDuration); enforcement = v(.enforcement, enforcement)
         snoozesPerDay = v(.snoozesPerDay, snoozesPerDay); doubleEscape = v(.doubleEscape, doubleEscape)
@@ -208,6 +209,7 @@ final class SettingsStore: ObservableObject {
         let eyes = BreakRule(kind: .eyes, interval: s.breakEvery, duration: s.breakDuration, enabled: s.breaksEnabled, message: "")
         scheduler.rules = [eyes] + s.planned
         scheduler.headsUpLead = s.headsUpEnabled ? s.headsUpLead : 0
+        scheduler.enabled = s.enabled
         scheduler.longBreakEvery = s.longBreakEvery
         scheduler.longBreakDuration = s.longBreakDuration
     }

@@ -34,7 +34,7 @@ final class AppModel {
         func on(_ f: @escaping () -> Void) -> () -> Void { { if store.settings.shortcutsEnabled { f() } } }
         hotkeys.register(key: kVK_ANSI_B, action: on { sched.startBreak() })
         hotkeys.register(key: kVK_ANSI_S, action: on { if sched.phase != .breaking { sched.endBreak() } })
-        hotkeys.register(key: kVK_ANSI_P, action: on { sched.pausedUntil = sched.pausedUntil == nil ? .distantFuture : nil })
+        hotkeys.register(key: kVK_ANSI_P, action: on { if !store.settings.enabled { store.settings.enabled = true } else { sched.pausedUntil = sched.pausedUntil == nil ? .distantFuture : nil } })
     }
 
     private func tick() {
@@ -66,7 +66,7 @@ struct LookAwayApp: App {
     }
 
     private var menuTitle: String {
-        guard store.settings.showTimeInMenuBar, scheduler.hasUpcoming, scheduler.pausedUntil == nil else { return "" }
+        guard store.settings.enabled, store.settings.showTimeInMenuBar, scheduler.hasUpcoming, scheduler.pausedUntil == nil else { return "" }
         return String(format: "%d:%02d", scheduler.secondsLeft / 60, scheduler.secondsLeft % 60)
     }
 
@@ -74,7 +74,7 @@ struct LookAwayApp: App {
         MenuBarExtra {
             MenuPopover(scheduler: scheduler, store: store, stats: AppModel.shared.stats)
         } label: {
-            Image(systemName: scheduler.pausedUntil != nil ? "eye.slash" : "eye")
+            Image(systemName: scheduler.pausedUntil != nil || !store.settings.enabled ? "eye.slash" : "eye")
             if !menuTitle.isEmpty { Text(menuTitle).monospacedDigit() }
         }
         .menuBarExtraStyle(.window)

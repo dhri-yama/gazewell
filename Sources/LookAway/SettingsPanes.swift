@@ -9,11 +9,17 @@ struct GeneralPane: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var stats: StatsStore
     var body: some View {
+        Block {
         Card {
-            ToggleRow(title: "Open at login", subtitle: "Works when running the bundled LookAway.app", symbol: "power", isOn: $store.launchAtLogin)
+            ToggleRow(title: "Enable LookAway", subtitle: "Turn off to stop all breaks, heads-ups and reminders. Your settings are kept.",
+                      symbol: "power", isOn: $store.settings.enabled)
+        }
+        Card {
+            ToggleRow(title: "Open at login", subtitle: "Works when running the bundled LookAway.app", symbol: "arrow.right.circle.fill", isOn: $store.launchAtLogin)
             Sep()
             ToggleRow(title: "Show time in the menu bar", subtitle: "Countdown to your next break next to the icon", symbol: "menubar.rectangle",
                       isOn: $store.settings.showTimeInMenuBar)
+        }
         }
         Block(title: "Data") { Card {
             Row(title: "Reset all settings", subtitle: "Restores every option to its default") {

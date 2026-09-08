@@ -93,6 +93,7 @@ final class Nudges {
 
     /// Called every second. A reminder that comes due during a break or a blocked moment waits for the next free tick.
     func tick(now: Date = Date()) {
+        guard store.settings.enabled else { due = [:]; return }
         for n in store.settings.nudges {
             guard n.enabled else { due[n.id] = nil; continue }
             let d = due[n.id] ?? now.addingTimeInterval(TimeInterval(n.minutes * 60))
