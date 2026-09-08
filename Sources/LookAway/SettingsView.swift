@@ -144,6 +144,13 @@ struct SettingsView: View {
                 Stepper(value: $store.settings.headsUpLead, in: 5...120, step: 5) {
                     Text("Heads-up \(Int(store.settings.headsUpLead)) sec before a break")
                 }
+                Toggle("Open at login", isOn: $store.launchAtLogin)
+                Section("When a break starts or ends, run") {
+                    TextField("Start: Shortcut name or AppleScript path", text: $store.settings.startHook)
+                    TextField("End: Shortcut name or AppleScript path", text: $store.settings.endHook)
+                }
+                Text("Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip the next break, ⌃⌥P pause or resume.")
+                    .font(.callout).foregroundStyle(.secondary)
             }
             .padding(24)
             .tabItem { Label("General", systemImage: "gearshape") }

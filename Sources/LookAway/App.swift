@@ -1,4 +1,5 @@
 import SwiftUI
+import Carbon.HIToolbox
 import LookAwayCore
 
 /// Owns long-lived objects so timers and overlays exist from launch, not from first menu open.
@@ -9,6 +10,8 @@ final class AppModel {
     let overlay: BreakOverlay
     let headsUp: HeadsUp
     let chime: Chime
+    let hooks: Hooks
+    let hotkeys = Hotkeys()
     private var timer: Timer?
 
     init() {
@@ -16,6 +19,11 @@ final class AppModel {
         overlay = BreakOverlay(scheduler: scheduler, store: store)
         headsUp = HeadsUp(scheduler: scheduler)
         chime = Chime(scheduler: scheduler, store: store)
+        hooks = Hooks(scheduler: scheduler, store: store)
+        let sched = scheduler
+        hotkeys.register(key: kVK_ANSI_B) { sched.startBreak() }
+        hotkeys.register(key: kVK_ANSI_S) { if sched.phase != .breaking { sched.endBreak() } }
+        hotkeys.register(key: kVK_ANSI_P) { sched.pausedUntil = sched.pausedUntil == nil ? Date().addingTimeInterval(3600) : nil }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
     }
 

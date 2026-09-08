@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import ServiceManagement
 import LookAwayCore
 
 enum BackgroundStyle: String, Codable, CaseIterable { case gradient, wallpaper, image }
@@ -17,6 +18,8 @@ struct AppSettings: Codable, Equatable {
     /// "" = silent, "custom" = soundPath, otherwise a system sound name.
     var sound = ""
     var soundPath = ""
+    var startHook = ""
+    var endHook = ""
 
     init() {}
 
@@ -34,6 +37,8 @@ struct AppSettings: Codable, Equatable {
         imagePath = try c.decodeIfPresent(String.self, forKey: .imagePath) ?? imagePath
         sound = try c.decodeIfPresent(String.self, forKey: .sound) ?? sound
         soundPath = try c.decodeIfPresent(String.self, forKey: .soundPath) ?? soundPath
+        startHook = try c.decodeIfPresent(String.self, forKey: .startHook) ?? startHook
+        endHook = try c.decodeIfPresent(String.self, forKey: .endHook) ?? endHook
     }
 }
 
@@ -42,9 +47,17 @@ final class SettingsStore: ObservableObject {
     private static let key = "settings.v1"
     @Published var settings: AppSettings { didSet { save(); apply() } }
     let scheduler: BreakScheduler
+    /// System state, not saved by us. Only works from a bundled .app (see bundle.sh).
+    @Published var launchAtLogin: Bool {
+        didSet {
+            do { launchAtLogin ? try SMAppService.mainApp.register() : try SMAppService.mainApp.unregister() }
+            catch { launchAtLogin = SMAppService.mainApp.status == .enabled }
+        }
+    }
 
     init(scheduler: BreakScheduler) {
         self.scheduler = scheduler
+        launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = UserDefaults.standard.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(AppSettings.self, from: $0) }
         settings = saved ?? AppSettings()
         apply()
