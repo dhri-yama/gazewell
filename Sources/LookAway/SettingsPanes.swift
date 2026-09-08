@@ -269,7 +269,7 @@ struct WellnessPane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
         Block {
-        Note("Gentle one-line reminders that appear at the top of your screen. They never interrupt with a full break.")
+        Note("Gentle animated reminders that fade in over a blurred screen for a few seconds. They never interrupt with a full break.")
         ForEach($store.settings.nudges) { $n in
             Card {
                 ToggleRow(title: n.name, symbol: n.symbol, isOn: $n.enabled)
@@ -305,6 +305,7 @@ private struct StatTile: View {
         }
         .frame(maxWidth: .infinity).padding(.vertical, 18)
         .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.cardStroke, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 }

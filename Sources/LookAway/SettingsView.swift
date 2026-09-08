@@ -115,9 +115,9 @@ struct SettingsView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .background(Theme.windowBg)
         }
         .frame(width: 960, height: height)
+        .background { Theme.glow }
         .environment(\.colorScheme, .dark)
     }
 

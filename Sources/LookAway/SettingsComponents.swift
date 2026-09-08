@@ -34,6 +34,7 @@ struct Card<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) { content }
             .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.cardStroke, lineWidth: 1))
     }
 }
 

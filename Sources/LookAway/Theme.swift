@@ -8,10 +8,20 @@ enum Theme {
     }
 
     // Settings window
-    static let windowBg = hex(0x171826)
-    static let sidebarBg = hex(0x1D1E30)
-    static let card = hex(0x252739)
-    static let hairline = Color.white.opacity(0.08)
+    // Glass: the window is a blurred backdrop; surfaces are translucent whites/blacks over it.
+    static let sidebarBg = Color.black.opacity(0.22)
+    static let card = Color.white.opacity(0.07)
+    static let cardStroke = Color.white.opacity(0.1)
+    static let hairline = Color.white.opacity(0.1)
+
+    /// Dark tint plus the olive glow shared with the break screen and menu popover.
+    static var glow: some View {
+        ZStack {
+            Color.black.opacity(0.3)
+            RadialGradient(colors: [hex(0x8C8446, 0.5), .clear], center: .topLeading, startRadius: 0, endRadius: 620)
+            RadialGradient(colors: [hex(0x5A5A32, 0.35), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 560)
+        }
+    }
     static let textDim = Color.white.opacity(0.6)
     static let accent = hex(0xFF6B2C)
 

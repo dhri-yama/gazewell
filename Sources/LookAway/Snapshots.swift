@@ -35,12 +35,12 @@ enum Snapshots {
         for (i, n) in Nudge.defaults.enumerated() {
             shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 760, height: 560))
         }
-        shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats), CGSize(width: 360, height: 420))
+        shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
             let tall: CGFloat = pane == .screenBreaks ? 1500 : pane == .breakScreen ? 1100 : 680
-            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall), CGSize(width: 960, height: tall))
+            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall).background(Color(white: 0.22)), CGSize(width: 960, height: tall))
         }
     }
 }
