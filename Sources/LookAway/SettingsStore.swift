@@ -4,6 +4,7 @@ import LookAwayCore
 
 struct AppSettings: Codable, Equatable {
     var rules = BreakRule.defaults
+    var planned: [BreakRule] = []
     var headsUpLead: TimeInterval = 30
     var pauseForCalls = true
     var pauseForRecording = true
@@ -16,6 +17,7 @@ struct AppSettings: Codable, Equatable {
     init(from d: Decoder) throws {
         let c = try d.container(keyedBy: CodingKeys.self)
         rules = try c.decodeIfPresent([BreakRule].self, forKey: .rules) ?? rules
+        planned = try c.decodeIfPresent([BreakRule].self, forKey: .planned) ?? planned
         headsUpLead = try c.decodeIfPresent(TimeInterval.self, forKey: .headsUpLead) ?? headsUpLead
         pauseForCalls = try c.decodeIfPresent(Bool.self, forKey: .pauseForCalls) ?? pauseForCalls
         pauseForRecording = try c.decodeIfPresent(Bool.self, forKey: .pauseForRecording) ?? pauseForRecording
@@ -42,7 +44,7 @@ final class SettingsStore: ObservableObject {
     }
 
     private func apply() {
-        scheduler.rules = settings.rules
+        scheduler.rules = settings.rules + settings.planned
         scheduler.headsUpLead = settings.headsUpLead
     }
 }

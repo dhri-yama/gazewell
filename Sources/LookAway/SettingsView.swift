@@ -22,6 +22,35 @@ private struct RuleEditor: View {
     }
 }
 
+private struct PlannedEditor: View {
+    @Binding var rule: BreakRule
+    var onDelete: () -> Void
+
+    private var time: Binding<Date> {
+        Binding {
+            Calendar.current.date(bySettingHour: rule.minuteOfDay / 60, minute: rule.minuteOfDay % 60, second: 0, of: Date()) ?? Date()
+        } set: {
+            let c = Calendar.current.dateComponents([.hour, .minute], from: $0)
+            rule.minuteOfDay = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+        }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Toggle("", isOn: $rule.enabled).labelsHidden()
+                TextField("Name (e.g. Lunch)", text: $rule.name).textFieldStyle(.roundedBorder)
+                DatePicker("", selection: time, displayedComponents: .hourAndMinute).labelsHidden()
+                Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }
+                    .buttonStyle(.borderless).accessibilityLabel("Delete planned break")
+            }
+            Stepper(value: $rule.duration, in: 60...3600, step: 60) { Text("For \(Int(rule.duration / 60)) min") }
+            TextField("Message", text: $rule.message).textFieldStyle(.roundedBorder)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var store: SettingsStore
 
@@ -35,6 +64,22 @@ struct SettingsView: View {
             }
             .padding(24)
             .tabItem { Label("Breaks", systemImage: "eye") }
+
+            VStack(alignment: .leading) {
+                Text("Fixed-time breaks, like lunch. They still wait for calls and focus.").foregroundStyle(.secondary)
+                ScrollView {
+                    ForEach($store.settings.planned) { $rule in
+                        PlannedEditor(rule: $rule) { store.settings.planned.removeAll { $0.id == rule.id } }
+                        Divider()
+                    }
+                }
+                Button("Add planned break") {
+                    store.settings.planned.append(BreakRule(kind: .planned, interval: 86400, duration: 1800,
+                                                            message: "Step away and eat something.", name: "Lunch"))
+                }
+            }
+            .padding(24)
+            .tabItem { Label("Planned", systemImage: "calendar") }
 
             Form {
                 Text("Don't interrupt me during").font(.headline)

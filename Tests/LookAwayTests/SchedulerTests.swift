@@ -132,3 +132,27 @@ private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: 
     s.registerIdle(25); s.tick()
     #expect(s.phase == .working)
 }
+
+@Test func plannedBreakFiresAtClockTimeAndRepeatsDaily() {
+    let cal = Calendar.current
+    var t = cal.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 11, minute: 59, second: 0))!
+    let lunch = BreakRule(kind: .planned, interval: 86400, duration: 60, message: "", name: "Lunch", minuteOfDay: 12 * 60)
+    let s = BreakScheduler(rules: [lunch], headsUpLead: 0, now: { t })
+    t += 59; s.tick()
+    #expect(s.phase == .working)
+    t += 1; s.tick()
+    #expect(s.phase == .breaking)
+    #expect(s.activeRule.title == "Lunch")
+    t += 60; s.tick()
+    #expect(s.phase == .working)
+    #expect(s.secondsLeft > 23 * 3600)   // next one is tomorrow
+}
+
+@Test func missedPlannedBreakIsSkippedNotFiredLate() {
+    let cal = Calendar.current
+    var t = cal.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 11, minute: 0))!
+    let lunch = BreakRule(kind: .planned, interval: 86400, duration: 60, message: "", name: "Lunch", minuteOfDay: 12 * 60)
+    let s = BreakScheduler(rules: [lunch], headsUpLead: 0, now: { t })
+    t += 3 * 3600; s.tick()           // Mac slept through noon
+    #expect(s.phase == .working)
+}

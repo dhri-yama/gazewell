@@ -63,7 +63,7 @@ public final class BreakScheduler: ObservableObject {
     public func registerIdle(_ idle: TimeInterval) {
         guard phase != .breaking else { return }
         let t = now()
-        for r in rules where idle >= r.duration { due[r.id] = t.addingTimeInterval(r.interval) }
+        for r in rules where r.kind != .planned && idle >= r.duration { due[r.id] = r.nextDue(after: t) }
     }
 
     /// While blocked or paused, anything about to fire is pushed out so a heads-up (not a surprise break) follows.
@@ -90,8 +90,8 @@ public final class BreakScheduler: ObservableObject {
     /// rule that was due by now (a long break covers shorter ones).
     public func endBreak() {
         let t = now()
-        due[activeRule.id] = t.addingTimeInterval(activeRule.interval)
-        for r in rules where (due[r.id] ?? t) <= t { due[r.id] = t.addingTimeInterval(r.interval) }
+        due[activeRule.id] = activeRule.nextDue(after: t)
+        for r in rules where (due[r.id] ?? t) <= t { due[r.id] = r.nextDue(after: t) }
         phase = .working
         refresh()
     }
@@ -105,11 +105,14 @@ public final class BreakScheduler: ObservableObject {
 
     private func syncDue() {
         let t = now()
-        due = Dictionary(uniqueKeysWithValues: rules.map { r in (r.id, due[r.id] ?? t.addingTimeInterval(r.interval)) })
+        due = Dictionary(uniqueKeysWithValues: rules.map { r in (r.id, due[r.id] ?? r.nextDue(after: t)) })
     }
 
     private func refresh() {
         if phase != .breaking {
+            // A planned break missed while asleep (or edited to a past time) waits for its next occurrence instead of firing late.
+            let t = now()
+            for r in rules where r.kind == .planned && (due[r.id] ?? t) < t.addingTimeInterval(-300) { due[r.id] = r.nextDue(after: t) }
             let next = rules.filter(\.enabled).min { (due[$0.id] ?? .distantFuture) < (due[$1.id] ?? .distantFuture) }
             if let next { activeRule = next; deadline = due[next.id] ?? .distantFuture } else { deadline = .distantFuture }
         }
