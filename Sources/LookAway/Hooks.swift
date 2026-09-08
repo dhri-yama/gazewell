@@ -7,7 +7,12 @@ final class Hooks {
     private var sub: AnyCancellable?
 
     init(scheduler: BreakScheduler, store: SettingsStore) {
-        sub = scheduler.onBreak(start: { Self.run(store.settings.startHook) }, end: { Self.run(store.settings.endHook) })
+        sub = scheduler.onBreak(
+            start: {
+                if store.settings.lockOnBreakStart { Lock.screen() }
+                Self.run(store.settings.startHook)
+            },
+            end: { Self.run(store.settings.endHook) })
     }
 
     /// A path to a .scpt/.applescript file runs with osascript; anything else is a Shortcut name.

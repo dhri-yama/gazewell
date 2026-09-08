@@ -1,162 +1,138 @@
 import SwiftUI
 import AppKit
-import UniformTypeIdentifiers
-import LookAwayCore
 
-private struct RuleEditor: View {
-    @Binding var rule: BreakRule
+enum Pane: String, CaseIterable, Identifiable {
+    case general, screenBreaks, breakScreen, smartPause, wellness, stats, alerts, sounds, shortcuts, automation, about
+    var id: String { rawValue }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Toggle(rule.title, isOn: $rule.enabled).font(.headline)
-            if rule.enabled {
-                Stepper(value: $rule.interval, in: 60...7200, step: 60) {
-                    Text("Every \(Int(rule.interval / 60)) min")
-                }
-                Stepper(value: $rule.duration, in: 5...600, step: 5) {
-                    Text("For \(Int(rule.duration)) sec")
-                }
-                TextField("Message shown during the break", text: $rule.message)
-                    .textFieldStyle(.roundedBorder)
-            }
-        }
-        .padding(.vertical, 8)
-    }
-}
-
-private struct PlannedEditor: View {
-    @Binding var rule: BreakRule
-    var onDelete: () -> Void
-
-    private var time: Binding<Date> {
-        Binding {
-            Calendar.current.date(bySettingHour: rule.minuteOfDay / 60, minute: rule.minuteOfDay % 60, second: 0, of: Date()) ?? Date()
-        } set: {
-            let c = Calendar.current.dateComponents([.hour, .minute], from: $0)
-            rule.minuteOfDay = (c.hour ?? 0) * 60 + (c.minute ?? 0)
+    var title: String {
+        switch self {
+        case .general: "General"
+        case .screenBreaks: "Screen Breaks"
+        case .breakScreen: "Break Screen"
+        case .smartPause: "Smart Pause"
+        case .wellness: "Wellness Reminders"
+        case .stats: "Stats"
+        case .alerts: "Alerts / Nudges"
+        case .sounds: "Sounds"
+        case .shortcuts: "Keyboard Shortcuts"
+        case .automation: "Automation"
+        case .about: "About"
         }
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Toggle("Enabled", isOn: $rule.enabled).labelsHidden()
-                TextField("Name (e.g. Lunch)", text: $rule.name).textFieldStyle(.roundedBorder)
-                DatePicker("Start time", selection: time, displayedComponents: .hourAndMinute).labelsHidden()
-                Button(role: .destructive, action: onDelete) { Image(systemName: "trash") }
-                    .buttonStyle(.borderless).accessibilityLabel("Delete planned break")
-            }
-            Stepper(value: $rule.duration, in: 60...3600, step: 60) { Text("For \(Int(rule.duration / 60)) min") }
-            TextField("Message", text: $rule.message).textFieldStyle(.roundedBorder)
+    var symbol: String {
+        switch self {
+        case .general: "gearshape.fill"
+        case .screenBreaks: "leaf.fill"
+        case .breakScreen: "paintbrush.pointed.fill"
+        case .smartPause: "pause.fill"
+        case .wellness: "heart.fill"
+        case .stats: "chart.bar.fill"
+        case .alerts: "bell.fill"
+        case .sounds: "speaker.wave.2.fill"
+        case .shortcuts: "command"
+        case .automation: "arrow.triangle.2.circlepath"
+        case .about: "info"
         }
-        .padding(.vertical, 8)
     }
-}
 
-private func chooseFile(types: [UTType], _ pick: (String) -> Void) {
-    let p = NSOpenPanel()
-    p.allowedContentTypes = types
-    p.allowsMultipleSelection = false
-    if p.runModal() == .OK, let url = p.url { pick(url.path) }
-}
-
-private struct AppearanceTab: View {
-    @ObservedObject var store: SettingsStore
-
-    var body: some View {
-        Form {
-            Picker("Background", selection: $store.settings.background) {
-                Text("Dusk gradient").tag(BackgroundStyle.gradient)
-                Text("Desktop wallpaper").tag(BackgroundStyle.wallpaper)
-                Text("Custom image").tag(BackgroundStyle.image)
-            }
-            if store.settings.background == .image {
-                HStack {
-                    Text(store.settings.imagePath.isEmpty ? "No image chosen" : (store.settings.imagePath as NSString).lastPathComponent)
-                        .foregroundStyle(.secondary).lineLimit(1)
-                    Button("Choose…") { chooseFile(types: [.image]) { store.settings.imagePath = $0 } }
-                }
-            }
-            Picker("Sound", selection: $store.settings.sound) {
-                Text("None").tag("")
-                ForEach(Chime.systemSounds, id: \.self) { Text($0).tag($0) }
-                Text("Custom file").tag("custom")
-            }
-            if store.settings.sound == "custom" {
-                HStack {
-                    Text(store.settings.soundPath.isEmpty ? "No file chosen" : (store.settings.soundPath as NSString).lastPathComponent)
-                        .foregroundStyle(.secondary).lineLimit(1)
-                    Button("Choose…") { chooseFile(types: [.audio]) { store.settings.soundPath = $0 } }
-                }
-            }
-            Button("Preview a break") { store.scheduler.startBreak(duration: 6) }
+    var tile: [UInt32] {
+        switch self {
+        case .general: [0xB05CD8, 0xE0609A]
+        case .screenBreaks, .breakScreen, .smartPause, .wellness, .stats: [0xC8509A, 0xF0609A]
+        case .alerts, .sounds, .shortcuts: [0xE0505A, 0xF08050]
+        case .automation: [0xE08A20, 0xF0B030]
+        case .about: [0xE0B020, 0xF0C840]
         }
-        .padding(24)
+    }
+
+    static let groups: [(String?, [Pane])] = [
+        (nil, [.general]),
+        ("Focus & Wellbeing", [.screenBreaks, .breakScreen, .smartPause, .wellness, .stats]),
+        ("Behavior & Feedback", [.alerts, .sounds, .shortcuts]),
+        ("Integrations", [.automation]),
+        ("LookAway", [.about]),
+    ]
+}
+
+final class SettingsNav: ObservableObject {
+    @Published var pane: Pane = .general
+}
+
+private struct SidebarItem: View {
+    var pane: Pane
+    var selected: Bool
+    var action: () -> Void
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: pane.symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                    .frame(width: 28, height: 28).background(Theme.tile(pane.tile), in: RoundedRectangle(cornerRadius: 8))
+                Text(pane.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(.white)
+                Spacer()
+            }
+            .padding(.horizontal, 8).padding(.vertical, 5)
+            .background(selected ? Color.white.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 10))
+            .contentShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
 
 struct SettingsView: View {
     @ObservedObject var store: SettingsStore
+    @ObservedObject var stats: StatsStore
+    @ObservedObject var nav: SettingsNav
 
     var body: some View {
-        TabView {
-            ScrollView {
-                VStack(alignment: .leading) {
-                    ForEach($store.settings.rules) { $rule in
-                        RuleEditor(rule: $rule)
-                        Divider()
+        HStack(spacing: 0) {
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 4) {
+                    ForEach(Pane.groups, id: \.0) { group in
+                        if let name = group.0 {
+                            Text(name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.textDim)
+                                .padding(.leading, 10).padding(.top, 18).padding(.bottom, 4)
+                        }
+                        ForEach(group.1) { pane in
+                            SidebarItem(pane: pane, selected: nav.pane == pane) { nav.pane = pane }
+                        }
                     }
                 }
-                .padding(24)
+                .padding(.horizontal, 12).padding(.top, 52).padding(.bottom, 16)
             }
-            .tabItem { Label("Breaks", systemImage: "eye") }
+            .frame(width: 244)
+            .background(Theme.sidebarBg)
 
-            AppearanceTab(store: store)
-                .tabItem { Label("Appearance", systemImage: "paintpalette") }
-
-            VStack(alignment: .leading) {
-                Text("Fixed-time breaks, like lunch. They still wait for calls and focus.").foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                PaneHeader(pane: nav.pane).padding(.top, 26)
+                Rectangle().fill(Theme.hairline).frame(height: 1)
                 ScrollView {
-                    ForEach($store.settings.planned) { $rule in
-                        PlannedEditor(rule: $rule) { store.settings.planned.removeAll { $0.id == rule.id } }
-                        Divider()
-                    }
-                }
-                Button("Add planned break") {
-                    store.settings.planned.append(BreakRule(kind: .planned, interval: 86400, duration: 1800,
-                                                            message: "Step away and eat something.", name: "Lunch"))
+                    VStack(alignment: .leading, spacing: 12) { content }
+                        .padding(.horizontal, 28).padding(.vertical, 18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
-            .padding(24)
-            .tabItem { Label("Planned", systemImage: "calendar") }
-
-            Form {
-                Text("Don't interrupt me during").font(.headline)
-                Toggle("Calls and meetings (mic or camera in use)", isOn: $store.settings.pauseForCalls)
-                Toggle("Screen recording", isOn: $store.settings.pauseForRecording)
-                Toggle("Video playback", isOn: $store.settings.pauseForVideo)
-                Toggle("Fullscreen apps and games", isOn: $store.settings.pauseForFullscreen)
-                Text("Breaks also wait for you to stop typing, and time away from the keyboard counts as a break.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            .padding(24)
-            .tabItem { Label("Smart Pause", systemImage: "pause.circle") }
-
-            Form {
-                Stepper(value: $store.settings.headsUpLead, in: 5...120, step: 5) {
-                    Text("Heads-up \(Int(store.settings.headsUpLead)) sec before a break")
-                }
-                Toggle("Open at login", isOn: $store.launchAtLogin)
-                Section("When a break starts or ends, run") {
-                    TextField("Start: Shortcut name or AppleScript path", text: $store.settings.startHook)
-                    TextField("End: Shortcut name or AppleScript path", text: $store.settings.endHook)
-                }
-                Text("Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip the next break, ⌃⌥P turn breaks off or on.")
-                    .font(.callout).foregroundStyle(.secondary)
-            }
-            .padding(24)
-            .tabItem { Label("General", systemImage: "gearshape") }
+            .background(Theme.windowBg)
         }
-        .frame(width: 480, height: 520)
+        .frame(width: 960, height: 680)
+        .environment(\.colorScheme, .dark)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch nav.pane {
+        case .general: GeneralPane(store: store, stats: stats)
+        case .screenBreaks: ScreenBreaksPane(store: store, nav: nav)
+        case .breakScreen: BreakScreenPane(store: store)
+        case .smartPause: SmartPausePane(store: store)
+        case .wellness: WellnessPane(store: store)
+        case .stats: StatsPane(stats: stats)
+        case .alerts: AlertsPane(store: store)
+        case .sounds: SoundsPane(store: store)
+        case .shortcuts: ShortcutsPane(store: store)
+        case .automation: AutomationPane(store: store)
+        case .about: AboutPane()
+        }
     }
 }

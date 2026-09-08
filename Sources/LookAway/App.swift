@@ -7,69 +7,74 @@ final class AppModel {
     static let shared = AppModel()
     let scheduler = BreakScheduler()
     let store: SettingsStore
+    let stats = StatsStore()
     let overlay: BreakOverlay
     let headsUp: HeadsUp
     let chime: Chime
     let hooks: Hooks
+    let nudges: Nudges
     let hotkeys = Hotkeys()
     private var timer: Timer?
 
     init() {
         store = SettingsStore(scheduler: scheduler)
-        overlay = BreakOverlay(scheduler: scheduler, store: store)
-        headsUp = HeadsUp(scheduler: scheduler)
+        let stats = stats
+        scheduler.onEvent = { stats.record($0) }
+        overlay = BreakOverlay(scheduler: scheduler, store: store, stats: stats)
+        headsUp = HeadsUp(scheduler: scheduler, store: store, canSnooze: { [store] in store.settings.snoozesPerDay < 0 || stats.stats.snoozesToday < store.settings.snoozesPerDay })
         chime = Chime(scheduler: scheduler, store: store)
         hooks = Hooks(scheduler: scheduler, store: store)
-        let sched = scheduler
-        hotkeys.register(key: kVK_ANSI_B) { sched.startBreak() }
-        hotkeys.register(key: kVK_ANSI_S) { if sched.phase != .breaking { sched.endBreak() } }
-        hotkeys.register(key: kVK_ANSI_P) { sched.pausedUntil = sched.pausedUntil == nil ? .distantFuture : nil }
+        nudges = Nudges(scheduler: scheduler, store: store)
+        registerHotkeys()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
+    }
+
+    private func registerHotkeys() {
+        let sched = scheduler, store = store
+        func on(_ f: @escaping () -> Void) -> () -> Void { { if store.settings.shortcutsEnabled { f() } } }
+        hotkeys.register(key: kVK_ANSI_B, action: on { sched.startBreak() })
+        hotkeys.register(key: kVK_ANSI_S, action: on { if sched.phase != .breaking { sched.endBreak() } })
+        hotkeys.register(key: kVK_ANSI_P, action: on { sched.pausedUntil = sched.pausedUntil == nil ? .distantFuture : nil })
     }
 
     private func tick() {
         let c = store.settings
         let idle = Blockers.idleSeconds
         scheduler.userActive = idle < 2
-        scheduler.blocked = (c.pauseForCalls && Blockers.inCall) || (c.pauseForRecording && Blockers.recordingScreen)
+        scheduler.blocked = !c.officeHours.contains(Date())
+            || (c.pauseForCalls && Blockers.inCall) || (c.pauseForRecording && Blockers.recordingScreen)
             || (c.pauseForVideo && Blockers.displayKeptAwake) || (c.pauseForFullscreen && Blockers.fullscreenApp)
-        scheduler.registerIdle(idle)
+        if c.idleCountsAsBreak { scheduler.registerIdle(idle) }
         scheduler.tick()
+        nudges.tick()
     }
 }
 
 @main
 struct LookAwayApp: App {
     @ObservedObject private var scheduler = AppModel.shared.scheduler
+    @ObservedObject private var store = AppModel.shared.store
 
-    init() { NSApplication.shared.setActivationPolicy(.accessory) }
+    init() {
+        if let i = CommandLine.arguments.firstIndex(of: "--snapshot"), i + 1 < CommandLine.arguments.count {
+            Snapshots.run(into: CommandLine.arguments[i + 1])
+            exit(0)
+        }
+        NSApplication.shared.setActivationPolicy(.accessory)
+    }
+
+    private var menuTitle: String {
+        guard store.settings.showTimeInMenuBar, scheduler.hasUpcoming, scheduler.pausedUntil == nil else { return "" }
+        return String(format: "%d:%02d", scheduler.secondsLeft / 60, scheduler.secondsLeft % 60)
+    }
 
     var body: some Scene {
-        MenuBarExtra("LookAway", systemImage: "eye") {
-            let m = scheduler.secondsLeft / 60, s = scheduler.secondsLeft % 60
-            Text(scheduler.pausedUntil != nil ? "Paused"
-                 : !scheduler.hasUpcoming ? "No breaks enabled"
-                 : scheduler.phase == .breaking ? "On a break" : String(format: "Next break in %d:%02d", m, s))
-            Divider()
-            Button("Start break now") { scheduler.startBreak() }
-            Menu("Start a longer break") {
-                Button("1 minute") { scheduler.startBreak(duration: 60) }
-                Button("5 minutes") { scheduler.startBreak(duration: 300) }
-                Button("15 minutes") { scheduler.startBreak(duration: 900) }
-            }
-            Button("Skip next break") { scheduler.endBreak() }
-                .disabled(scheduler.phase == .breaking)
-            if scheduler.pausedUntil != nil {
-                Button("Resume breaks") { scheduler.pausedUntil = nil }
-            } else {
-                Menu("Pause breaks") {
-                    Button("For 1 hour") { scheduler.pausedUntil = Date().addingTimeInterval(3600) }
-                    Button("For 4 hours") { scheduler.pausedUntil = Date().addingTimeInterval(4 * 3600) }
-                    Button("Until I turn it back on") { scheduler.pausedUntil = .distantFuture }
-                }
-            }
-            Button("Settings…") { SettingsWindow.show(store: AppModel.shared.store) }.keyboardShortcut(",")
-            Button("Quit LookAway") { NSApp.terminate(nil) }.keyboardShortcut("q")
+        MenuBarExtra {
+            MenuPopover(scheduler: scheduler, store: store, stats: AppModel.shared.stats)
+        } label: {
+            Image(systemName: scheduler.pausedUntil != nil ? "eye.slash" : "eye")
+            if !menuTitle.isEmpty { Text(menuTitle).monospacedDigit() }
         }
+        .menuBarExtraStyle(.window)
     }
 }
