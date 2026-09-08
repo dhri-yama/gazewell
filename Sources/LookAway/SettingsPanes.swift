@@ -423,6 +423,7 @@ struct AlertsPane: View {
 private struct SoundRow: View {
     var title: String
     @Binding var choice: String
+    var volume: Double
 
     private var options: [(String, String)] {
         var o = [("", "None")] + Chime.systemSounds.map { ($0, $0) }
@@ -434,7 +435,7 @@ private struct SoundRow: View {
         Row(title: title) {
             HStack(spacing: 8) {
                 Dropdown(label: title, selection: $choice, options: options)
-                IconButton(symbol: "play.fill", label: "Play \(title)", enabled: !choice.isEmpty) { Chime.play(choice) }
+                IconButton(symbol: "play.fill", label: "Play \(title)", enabled: !choice.isEmpty) { Chime.play(choice, volume: volume) }
                 Button("File…") { chooseFile(types: [.audio]) { choice = "file:" + $0 } }
                     .buttonStyle(ControlButton())
             }
@@ -446,9 +447,17 @@ struct SoundsPane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
         Card {
-            SoundRow(title: "When a break starts", choice: $store.settings.startSound)
+            SoundRow(title: "When a break starts", choice: $store.settings.startSound, volume: store.settings.soundVolume)
             Sep()
-            SoundRow(title: "When a break ends", choice: $store.settings.endSound)
+            SoundRow(title: "When a break ends", choice: $store.settings.endSound, volume: store.settings.soundVolume)
+            Sep()
+            Row(title: "Volume", subtitle: "Relative to your Mac's volume") {
+                HStack(spacing: 10) {
+                    Image(systemName: "speaker.fill").font(.system(size: 11)).foregroundStyle(Theme.textDim)
+                    Slider(value: $store.settings.soundVolume, in: 0.05...1).frame(width: 180).tint(Theme.accent)
+                    Image(systemName: "speaker.wave.3.fill").font(.system(size: 11)).foregroundStyle(Theme.textDim)
+                }
+            }
         }
     }
 }

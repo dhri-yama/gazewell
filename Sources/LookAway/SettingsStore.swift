@@ -135,6 +135,7 @@ struct AppSettings: Codable, Equatable {
     // Sounds: "" none, a system sound name, or "file:<path>"
     var startSound = ""
     var endSound = ""
+    var soundVolume = 0.25                 // 0...1, relative to system volume
     // Automation
     var startHook = ""
     var endHook = ""
@@ -162,7 +163,7 @@ struct AppSettings: Codable, Equatable {
         imagePath = v(.imagePath, imagePath); showClock = v(.showClock, showClock)
         showLockButton = v(.showLockButton, showLockButton); customMessages = v(.customMessages, customMessages)
         titleFont = v(.titleFont, titleFont); subtitleFont = v(.subtitleFont, subtitleFont); timerFont = v(.timerFont, timerFont)
-        startSound = v(.startSound, startSound); endSound = v(.endSound, endSound)
+        startSound = v(.startSound, startSound); endSound = v(.endSound, endSound); soundVolume = v(.soundVolume, soundVolume)
         startHook = v(.startHook, startHook); endHook = v(.endHook, endHook)
         shortcutsEnabled = v(.shortcutsEnabled, shortcutsEnabled); showTimeInMenuBar = v(.showTimeInMenuBar, showTimeInMenuBar)
     }
