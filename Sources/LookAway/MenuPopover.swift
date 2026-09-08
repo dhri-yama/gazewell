@@ -2,44 +2,55 @@ import SwiftUI
 import AppKit
 import LookAwayCore
 
+/// Hover state for a row. An object rather than @State so it builds on toolchains without SwiftUI's macro plugin.
+private final class HoverModel: ObservableObject { @Published var on = false }
+
+private let glassStroke = Color.white.opacity(0.12)
+
 private struct TileButton: View {
     var title: String
     var symbol: String
+    var tint: Color?
     var action: () -> Void
     var body: some View {
-        Button(action: action) { tileLabel(title, symbol) }.buttonStyle(PressStyle())
+        Button(action: action) { tileLabel(title, symbol, tint: tint) }.buttonStyle(PressStyle())
     }
 }
 
-private func tileLabel(_ title: String, _ symbol: String) -> some View {
-    VStack(spacing: 6) {
-        Image(systemName: symbol).font(.system(size: 18, weight: .semibold))
+private func tileLabel(_ title: String, _ symbol: String, tint: Color? = nil) -> some View {
+    VStack(spacing: 7) {
+        Image(systemName: symbol).font(.system(size: 17, weight: .semibold))
         Text(title).font(.system(size: 12, weight: .medium))
     }
     .foregroundStyle(.white)
-    .frame(maxWidth: .infinity).padding(.vertical, 12)
-    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
-    .contentShape(RoundedRectangle(cornerRadius: 12))
+    .frame(maxWidth: .infinity).padding(.vertical, 13)
+    .background((tint ?? .white).opacity(tint == nil ? 0.08 : 0.32), in: RoundedRectangle(cornerRadius: 14))
+    .overlay(RoundedRectangle(cornerRadius: 14).stroke(glassStroke, lineWidth: 1))
+    .contentShape(RoundedRectangle(cornerRadius: 14))
 }
 
 private struct RowButton: View {
     var title: String
     var symbol: String
-    var shortcut: String?
+    var shortcut: String
     var action: () -> Void
+    @StateObject private var hover = HoverModel()
+
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: symbol).frame(width: 20).foregroundStyle(Theme.textDim)
+                Image(systemName: symbol).frame(width: 20).foregroundStyle(.white.opacity(0.6))
                 Text(title)
                 Spacer()
-                if let shortcut { Text(shortcut).foregroundStyle(Theme.textDim) }
+                Text(shortcut).foregroundStyle(.white.opacity(0.5))
             }
             .font(.system(size: 14)).foregroundStyle(.white)
-            .padding(.horizontal, 12).padding(.vertical, 8)
+            .padding(.horizontal, 10).padding(.vertical, 8)
+            .background(.white.opacity(hover.on ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 9))
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .onHover { hover.on = $0 }
     }
 }
 
@@ -72,37 +83,33 @@ struct MenuPopover: View {
 
     var body: some View {
         let today = stats.stats.day(Date())
+        let streak = stats.stats.streak()
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(spacing: 12) {
-                    Image(systemName: paused ? "pause.fill" : "eye.fill").font(.system(size: 17, weight: .semibold)).foregroundStyle(.white)
-                        .frame(width: 40, height: 40)
-                        .background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 11))
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(heading).font(.system(size: 13)).foregroundStyle(Theme.textDim)
-                        if scheduler.hasUpcoming && !paused {
-                            Text(clock).font(.system(size: 28, weight: .bold)).monospacedDigit().foregroundStyle(.white)
-                        }
-                    }
-                    Spacer()
+            VStack(alignment: .leading, spacing: 4) {
+                Text(heading).font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.65))
+                if scheduler.hasUpcoming && !paused {
+                    Text(clock).font(.system(size: 44, weight: .bold)).monospacedDigit().foregroundStyle(.white)
+                } else {
+                    Text(paused ? "Paused" : "—").font(.system(size: 44, weight: .bold)).foregroundStyle(.white.opacity(0.5))
                 }
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.12))
-                        Capsule().fill(Theme.accent).frame(width: g.size.width * progress)
+                        Capsule().fill(.white.opacity(0.14))
+                        Capsule().fill(.white.opacity(0.85)).frame(width: max(5, g.size.width * progress))
                     }
                 }
-                .frame(height: 5)
+                .frame(height: 5).padding(.top, 8)
                 .accessibilityHidden(true)
             }
-            .padding(16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, 18).padding(.top, 18).padding(.bottom, 14)
 
             HStack(spacing: 8) {
-                TileButton(title: "Start break", symbol: "play.fill") { dismissPopover(); scheduler.startBreak() }
-                TileButton(title: "Skip next", symbol: "forward.fill") { dismissPopover(); scheduler.endBreak() }
+                TileButton(title: "Start break", symbol: "play.fill", tint: Theme.accent) { dismissPopover(); scheduler.startBreak() }
+                TileButton(title: "Skip next", symbol: "forward.fill", tint: nil) { dismissPopover(); scheduler.endBreak() }
                     .disabled(scheduler.phase == .breaking).opacity(scheduler.phase == .breaking ? 0.4 : 1)
                 if paused {
-                    TileButton(title: "Resume", symbol: "play.circle") { scheduler.pausedUntil = nil }
+                    TileButton(title: "Resume", symbol: "play.circle", tint: nil) { scheduler.pausedUntil = nil }
                 } else {
                     Menu {
                         Button("For 1 hour") { scheduler.pausedUntil = Date().addingTimeInterval(3600) }
@@ -112,23 +119,31 @@ struct MenuPopover: View {
                     .menuStyle(.button).menuIndicator(.hidden).buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 14)
 
-            Text("Today: \(today.taken) taken · \(today.skipped) skipped\(stats.stats.streak() > 1 ? " · \(stats.stats.streak())-day streak" : "")")
-                .font(.system(size: 12)).foregroundStyle(Theme.textDim)
-                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16).padding(.top, 12)
+            Text("Today · \(today.taken) taken · \(today.skipped) skipped\(streak > 1 ? " · \(streak)-day streak" : "")")
+                .font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
+                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18).padding(.top, 14)
 
-            Rectangle().fill(Theme.hairline).frame(height: 1).padding(.top, 12)
-            VStack(spacing: 0) {
+            Rectangle().fill(.white.opacity(0.1)).frame(height: 1).padding(.top, 14)
+            VStack(spacing: 2) {
                 RowButton(title: "Settings…", symbol: "gearshape", shortcut: "⌘,") { dismissPopover(); SettingsWindow.show(store: store, stats: stats) }
                     .keyboardShortcut(",")
                 RowButton(title: "Quit LookAway", symbol: "power", shortcut: "⌘Q") { NSApp.terminate(nil) }
                     .keyboardShortcut("q")
             }
-            .padding(.vertical, 6)
+            .padding(8)
         }
         .frame(width: 320)
-        .background(Theme.windowBg)
+        .background {
+            // Same family as the break screen: a warm olive glow over a blurred, dark glass.
+            ZStack {
+                Rectangle().fill(.regularMaterial)
+                Color.black.opacity(0.28)
+                RadialGradient(colors: [Theme.hex(0x8C8446, 0.55), .clear], center: .topLeading, startRadius: 0, endRadius: 260)
+                RadialGradient(colors: [Theme.hex(0x5A5A32, 0.35), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 220)
+            }
+        }
         .environment(\.colorScheme, .dark)
     }
 }
