@@ -19,6 +19,7 @@ enum Snapshots {
             try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: "\(dir)/\(name).png"))
         }
 
+        print("probe inCall=\(Blockers.inCall) display=\(Blockers.displayKeptAwake) idle=\(Int(Blockers.idleSeconds))")
         let sched = BreakScheduler()
         let store = SettingsStore(scheduler: sched)
         let stats = StatsStore()

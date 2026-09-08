@@ -197,3 +197,43 @@ private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: 
     #expect(st.streak() == 2)
     #expect(st.recent(7).count == 7)
 }
+
+@Test func callSkipsDueBreakAndRestartsInterval() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 100, 10)], headsUpLead: 30, now: { t })
+    s.skipForCall = true
+    t += 80; s.tick()                 // inside the heads-up window, but on a call
+    #expect(s.phase == .working)
+    t += 20; s.tick()                 // would have been the break
+    #expect(s.phase == .working)
+    #expect(s.secondsLeft == 80)      // a fresh 100s interval started at t=80
+    s.skipForCall = false
+    t += 100; s.tick()
+    #expect(s.phase != .working || s.secondsLeft <= 30)   // breaks resume after the call
+}
+
+@Test func callEndsBreakInProgressWithoutCountingIt() {
+    var t = Date(timeIntervalSince1970: 0)
+    let s = BreakScheduler(rules: [rule(.eyes, 10, 20)], headsUpLead: 0, now: { t })
+    var events: [BreakScheduler.Event] = []
+    s.onEvent = { events.append($0) }
+    t += 10; s.tick()
+    #expect(s.phase == .breaking)
+    s.skipForCall = true
+    t += 2; s.tick()
+    #expect(s.phase == .working)
+    #expect(events.isEmpty)
+}
+
+@Test func plannedBreakWaitsDuringCallInsteadOfSkipping() {
+    let cal = Calendar.current
+    var t = cal.date(from: DateComponents(year: 2026, month: 1, day: 5, hour: 11, minute: 59, second: 30))!
+    let lunch = BreakRule(kind: .planned, interval: 86400, duration: 60, message: "", name: "Lunch", minuteOfDay: 12 * 60)
+    let s = BreakScheduler(rules: [lunch], headsUpLead: 0, now: { t })
+    s.skipForCall = true
+    t += 30; s.tick()                 // noon, on a call
+    #expect(s.phase == .working)
+    s.skipForCall = false
+    t += 5; s.tick()
+    #expect(s.phase == .breaking || s.secondsLeft <= 1)   // still due once the call ends (not pushed to tomorrow)
+}

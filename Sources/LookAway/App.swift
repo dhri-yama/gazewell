@@ -41,8 +41,10 @@ final class AppModel {
         let c = store.settings
         let idle = Blockers.idleSeconds
         scheduler.userActive = idle < 2
+        let call = c.pauseForCalls && Blockers.inCall      // microphone or camera in use
+        scheduler.skipForCall = call && c.skipDuringCalls
         scheduler.blocked = !c.officeHours.contains(Date())
-            || (c.pauseForCalls && Blockers.inCall) || (c.pauseForRecording && Blockers.recordingScreen)
+            || (call && !c.skipDuringCalls) || (c.pauseForRecording && Blockers.recordingScreen)
             || (c.pauseForVideo && Blockers.displayKeptAwake) || (c.pauseForFullscreen && Blockers.fullscreenApp)
         if c.idleCountsAsBreak { scheduler.registerIdle(idle) }
         scheduler.tick()

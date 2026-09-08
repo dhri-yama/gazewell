@@ -28,6 +28,9 @@ public final class BreakScheduler: ObservableObject {
     /// Called when a break is taken in full, skipped, or snoozed (for stats).
     public var onEvent: ((Event) -> Void)?
     private var eyesBreaksStarted = 0
+    /// Set by the app each tick: a call is on. Unlike `blocked` (which delays), the break is dropped and its interval restarts;
+    /// a break already on screen ends. Planned breaks are only delayed.
+    public var skipForCall = false
     /// Set by the app each tick: the user is typing/clicking right now.
     public var userActive = false
     /// A break waits at most this long for the user to stop typing.
@@ -54,7 +57,9 @@ public final class BreakScheduler: ObservableObject {
 
     public func tick() {
         if let p = pausedUntil, p <= now() { pausedUntil = nil }
-        if phase != .breaking && (blocked || pausedUntil != nil) { holdOff() }
+        if phase == .breaking && skipForCall { finishBreak(nil) }
+        if phase != .breaking && skipForCall { dropDue() }
+        else if phase != .breaking && (blocked || pausedUntil != nil) { holdOff() }
         refresh()
         if phase == .headsUp && TimeInterval(secondsLeft) > headsUpLead { phase = .working }  // idle reset pushed it out
         switch phase {
@@ -76,6 +81,15 @@ public final class BreakScheduler: ObservableObject {
         guard phase != .breaking else { return }
         let t = now()
         for r in rules where r.kind != .planned && idle >= r.duration { due[r.id] = r.nextDue(after: t) }
+    }
+
+    /// During a call, a break about to fire is skipped: it restarts its interval. Planned breaks wait instead.
+    private func dropDue() {
+        let t = now()
+        for r in rules where (due[r.id] ?? t).timeIntervalSince(t) <= headsUpLead {
+            due[r.id] = r.kind == .planned ? t.addingTimeInterval(headsUpLead + 1) : r.nextDue(after: t)
+        }
+        if phase == .headsUp { phase = .working }
     }
 
     /// While blocked or paused, anything about to fire is pushed out so a heads-up (not a surprise break) follows.
@@ -108,8 +122,8 @@ public final class BreakScheduler: ObservableObject {
     /// rule that was due by now (a long break covers shorter ones).
     public func endBreak() { finishBreak(.skipped) }
 
-    private func finishBreak(_ event: Event) {
-        onEvent?(event)
+    private func finishBreak(_ event: Event?) {
+        if let event { onEvent?(event) }
         let t = now()
         due[activeRule.id] = activeRule.nextDue(after: t)
         for r in rules where (due[r.id] ?? t) <= t { due[r.id] = r.nextDue(after: t) }

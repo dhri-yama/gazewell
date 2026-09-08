@@ -113,6 +113,7 @@ struct AppSettings: Codable, Equatable {
     var planned: [BreakRule] = []
     // Smart pause
     var pauseForCalls = true
+    var skipDuringCalls = true             // false = delay the break until the call ends
     var pauseForRecording = true
     var pauseForVideo = true
     var pauseForFullscreen = true
@@ -155,7 +156,7 @@ struct AppSettings: Codable, Equatable {
         snoozesPerDay = v(.snoozesPerDay, snoozesPerDay); doubleEscape = v(.doubleEscape, doubleEscape)
         allowEarlyEnd = v(.allowEarlyEnd, allowEarlyEnd); lockOnBreakStart = v(.lockOnBreakStart, lockOnBreakStart)
         officeHours = v(.officeHours, officeHours); planned = v(.planned, planned)
-        pauseForCalls = v(.pauseForCalls, pauseForCalls); pauseForRecording = v(.pauseForRecording, pauseForRecording)
+        pauseForCalls = v(.pauseForCalls, pauseForCalls); skipDuringCalls = v(.skipDuringCalls, skipDuringCalls); pauseForRecording = v(.pauseForRecording, pauseForRecording)
         pauseForVideo = v(.pauseForVideo, pauseForVideo); pauseForFullscreen = v(.pauseForFullscreen, pauseForFullscreen)
         idleCountsAsBreak = v(.idleCountsAsBreak, idleCountsAsBreak); nudges = v(.nudges, nudges)
         headsUpEnabled = v(.headsUpEnabled, headsUpEnabled); headsUpLead = v(.headsUpLead, headsUpLead)

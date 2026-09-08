@@ -301,6 +301,12 @@ struct SmartPausePane: View {
         Note("Breaks stay out of your way. LookAway holds the break back while any of these is happening.")
         Card {
             ToggleRow(title: "Calls and meetings", subtitle: "Microphone or camera in use", symbol: "phone.fill", isOn: $store.settings.pauseForCalls)
+            if store.settings.pauseForCalls {
+                Sep()
+                MenuRow(title: "During a call", subtitle: "A break that comes due, or is already showing, when a call starts",
+                        selection: $store.settings.skipDuringCalls,
+                        options: [(true, "Skip it"), (false, "Delay until the call ends")])
+            }
             Sep()
             ToggleRow(title: "Screen recording", symbol: "record.circle", isOn: $store.settings.pauseForRecording)
             Sep()
