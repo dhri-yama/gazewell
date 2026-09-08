@@ -4,16 +4,14 @@ import LookAwayCore
 /// Owns long-lived objects so timers and overlays exist from launch, not from first menu open.
 final class AppModel {
     static let shared = AppModel()
-    let scheduler: BreakScheduler
+    let scheduler = BreakScheduler()
+    let store: SettingsStore
     let overlay: BreakOverlay
     let headsUp: HeadsUp
     private var timer: Timer?
 
     init() {
-        // Env overrides (seconds) make manual testing quick.
-        let env = ProcessInfo.processInfo.environment
-        scheduler = BreakScheduler(interval: TimeInterval(env["LOOKAWAY_INTERVAL"] ?? "") ?? 20 * 60,
-                              duration: TimeInterval(env["LOOKAWAY_DURATION"] ?? "") ?? 20)
+        store = SettingsStore(scheduler: scheduler)
         overlay = BreakOverlay(scheduler: scheduler)
         headsUp = HeadsUp(scheduler: scheduler)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [scheduler] _ in scheduler.tick() }
@@ -29,7 +27,8 @@ struct LookAwayApp: App {
     var body: some Scene {
         MenuBarExtra("LookAway", systemImage: "eye") {
             let m = scheduler.secondsLeft / 60, s = scheduler.secondsLeft % 60
-            Text(scheduler.phase == .breaking ? "On a break" : String(format: "Next break in %d:%02d", m, s))
+            Text(!scheduler.hasUpcoming ? "No breaks enabled"
+                 : scheduler.phase == .breaking ? "On a break" : String(format: "Next break in %d:%02d", m, s))
             Divider()
             Button("Start break now") { scheduler.startBreak() }
             Menu("Start a longer break") {
@@ -39,6 +38,7 @@ struct LookAwayApp: App {
             }
             Button("Skip next break") { scheduler.endBreak() }
                 .disabled(scheduler.phase == .breaking)
+            Button("Settings…") { SettingsWindow.show(store: AppModel.shared.store) }.keyboardShortcut(",")
             Button("Quit LookAway") { NSApp.terminate(nil) }.keyboardShortcut("q")
         }
     }

@@ -11,7 +11,7 @@ struct BreakView: View {
         ZStack {
             Theme.sky.ignoresSafeArea()
             VStack(spacing: 40) {
-                Text("REST YOUR EYES")
+                Text(scheduler.activeRule.title.uppercased())
                     .font(.callout.weight(.medium)).tracking(3)
                     .foregroundStyle(Theme.glow)
                 ZStack {
@@ -27,7 +27,7 @@ struct BreakView: View {
                         .foregroundStyle(.white)
                         .accessibilityLabel("\(scheduler.secondsLeft) seconds left")
                 }
-                Text("Look at something 20 feet away.")
+                Text(scheduler.activeRule.message)
                     .font(.title3).foregroundStyle(.white)
             }
             VStack {
