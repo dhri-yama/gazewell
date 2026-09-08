@@ -29,7 +29,7 @@ enum Snapshots {
                  copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
                  image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
         }
-        for preset in FontPreset.all where ["Editorial", "Classic", "Typewriter"].contains(preset.name) {
+        for preset in FontPreset.all where ["Serif + Sans"].contains(preset.name) {
             var s = store.settings; s.titleFont = preset.title; s.subtitleFont = preset.subtitle; s.timerFont = preset.timer
             shot("break-font-\(preset.name)", BreakView(scheduler: sched, settings: s,
                  copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),

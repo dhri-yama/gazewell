@@ -87,10 +87,11 @@ struct FontPreset {
     var title: FontSpec, subtitle: FontSpec, timer: FontSpec
 
     static let all: [FontPreset] = [
-        .init(name: "LookAway", title: .init(family: "system", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "system", weight: 3)),
-        .init(name: "Editorial", title: .init(family: "serif", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "mono", weight: 1)),
+        .init(name: "Serif + Sans", title: .init(family: "serif", weight: 3), subtitle: .init(family: "system", weight: 1), timer: .init(family: "system", weight: 2)),
+        .init(name: "Sans", title: .init(family: "system", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "system", weight: 3)),
+        .init(name: "Didot + Avenir", title: .init(family: "Didot", weight: 4), subtitle: .init(family: "Avenir Next", weight: 1), timer: .init(family: "Avenir Next", weight: 2)),
+        .init(name: "Serif + Mono", title: .init(family: "serif", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "mono", weight: 1)),
         .init(name: "Soft", title: .init(family: "rounded", weight: 4), subtitle: .init(family: "rounded", weight: 1), timer: .init(family: "rounded", weight: 3)),
-        .init(name: "Classic", title: .init(family: "Didot", weight: 4), subtitle: .init(family: "Avenir Next", weight: 1), timer: .init(family: "Avenir Next", weight: 2)),
         .init(name: "Typewriter", title: .init(family: "American Typewriter", weight: 4), subtitle: .init(family: "American Typewriter", weight: 1), timer: .init(family: "Courier New", weight: 4)),
         .init(name: "Mono", title: .init(family: "mono", weight: 2), subtitle: .init(family: "mono", weight: 0), timer: .init(family: "mono", weight: 1)),
     ]
@@ -184,7 +185,13 @@ final class SettingsStore: ObservableObject {
         self.scheduler = scheduler
         launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = UserDefaults.standard.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(AppSettings.self, from: $0) }
-        settings = saved ?? AppSettings()
+        var loaded = saved ?? AppSettings()
+        // Earlier builds defaulted to all-sans type; anyone still on exactly that moves to the new serif + sans default.
+        let sans = FontPreset.all[1], def = FontPreset.all[0]
+        if loaded.titleFont == sans.title && loaded.subtitleFont == sans.subtitle && loaded.timerFont == sans.timer {
+            loaded.titleFont = def.title; loaded.subtitleFont = def.subtitle; loaded.timerFont = def.timer
+        }
+        settings = loaded
         apply()
     }
 
