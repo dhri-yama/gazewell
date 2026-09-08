@@ -29,6 +29,12 @@ enum Snapshots {
                  copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
                  image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
         }
+        for preset in FontPreset.all where ["Editorial", "Classic", "Typewriter"].contains(preset.name) {
+            var s = store.settings; s.titleFont = preset.title; s.subtitleFont = preset.subtitle; s.timerFont = preset.timer
+            shot("break-font-\(preset.name)", BreakView(scheduler: sched, settings: s,
+                 copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
+                 image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
+        }
         let hu = BreakScheduler(); hu.postpone(by: 40)
         shot("headsup", HeadsUpCard(scheduler: hu, canSnooze: true).padding(20).background(Color.gray), CGSize(width: 500, height: 190))
         shot("pill", CursorPill(scheduler: hu).padding(20).background(Color.gray), CGSize(width: 260, height: 60))
@@ -39,7 +45,7 @@ enum Snapshots {
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
-            let tall: CGFloat = pane == .screenBreaks ? 1500 : pane == .breakScreen ? 1100 : 680
+            let tall: CGFloat = pane == .screenBreaks ? 1500 : pane == .breakScreen ? 1500 : 680
             shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall).background(Color(white: 0.22)), CGSize(width: 960, height: tall))
         }
     }

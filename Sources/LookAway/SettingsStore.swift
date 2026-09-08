@@ -1,4 +1,6 @@
 import Foundation
+import SwiftUI
+import AppKit
 import Combine
 import ServiceManagement
 import LookAwayCore
@@ -47,6 +49,53 @@ struct Nudge: Codable, Identifiable, Equatable {
     ]
 }
 
+/// A font family (or one of the system designs: "system", "rounded", "serif", "mono") plus a weight 0...5 (light...heavy).
+struct FontSpec: Codable, Equatable {
+    var family: String
+    var weight: Int
+
+    static let weights = ["Light", "Regular", "Medium", "Semibold", "Bold", "Heavy"]
+    private static let swiftWeights: [Font.Weight] = [.light, .regular, .medium, .semibold, .bold, .heavy]
+
+    static let systemFamilies: [(String, String)] = [
+        ("system", "SF Pro"), ("rounded", "SF Rounded"), ("serif", "New York"), ("mono", "SF Mono"),
+    ]
+    /// Well-known faces that ship with macOS; only the ones installed are offered.
+    static let installedFamilies: [(String, String)] = {
+        let have = Set(NSFontManager.shared.availableFontFamilies)
+        return ["Helvetica Neue", "Avenir Next", "Futura", "Optima", "Gill Sans", "Georgia", "Palatino", "Baskerville", "Didot",
+                "Hoefler Text", "Times New Roman", "American Typewriter", "Menlo", "Courier New", "Marker Felt", "Chalkboard SE",
+                "Snell Roundhand", "Copperplate", "Avenir", "Charter", "Iowan Old Style"]
+            .filter { have.contains($0) }.map { ($0, $0) }
+    }()
+    static var allFamilies: [(String, String)] { systemFamilies + installedFamilies }
+
+    func font(_ size: CGFloat) -> Font {
+        let w = Self.swiftWeights[min(max(weight, 0), 5)]
+        switch family {
+        case "system": return .system(size: size, weight: w)
+        case "rounded": return .system(size: size, weight: w, design: .rounded)
+        case "serif": return .system(size: size, weight: w, design: .serif)
+        case "mono": return .system(size: size, weight: w, design: .monospaced)
+        default: return Font.custom(family, size: size).weight(w)
+        }
+    }
+}
+
+struct FontPreset {
+    var name: String
+    var title: FontSpec, subtitle: FontSpec, timer: FontSpec
+
+    static let all: [FontPreset] = [
+        .init(name: "LookAway", title: .init(family: "system", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "system", weight: 3)),
+        .init(name: "Editorial", title: .init(family: "serif", weight: 4), subtitle: .init(family: "system", weight: 1), timer: .init(family: "mono", weight: 1)),
+        .init(name: "Soft", title: .init(family: "rounded", weight: 4), subtitle: .init(family: "rounded", weight: 1), timer: .init(family: "rounded", weight: 3)),
+        .init(name: "Classic", title: .init(family: "Didot", weight: 4), subtitle: .init(family: "Avenir Next", weight: 1), timer: .init(family: "Avenir Next", weight: 2)),
+        .init(name: "Typewriter", title: .init(family: "American Typewriter", weight: 4), subtitle: .init(family: "American Typewriter", weight: 1), timer: .init(family: "Courier New", weight: 4)),
+        .init(name: "Mono", title: .init(family: "mono", weight: 2), subtitle: .init(family: "mono", weight: 0), timer: .init(family: "mono", weight: 1)),
+    ]
+}
+
 struct AppSettings: Codable, Equatable {
     // Screen breaks
     var breaksEnabled = true
@@ -78,6 +127,9 @@ struct AppSettings: Codable, Equatable {
     var imagePath = ""
     var showClock = true
     var showLockButton = true
+    var titleFont = FontPreset.all[0].title
+    var subtitleFont = FontPreset.all[0].subtitle
+    var timerFont = FontPreset.all[0].timer
     var customMessages = ""                // one per line, "Title | Subtitle" or just a subtitle
     // Sounds: "" none, a system sound name, or "file:<path>"
     var startSound = ""
@@ -108,6 +160,7 @@ struct AppSettings: Codable, Equatable {
         cursorCountdown = v(.cursorCountdown, cursorCountdown); theme = v(.theme, theme)
         imagePath = v(.imagePath, imagePath); showClock = v(.showClock, showClock)
         showLockButton = v(.showLockButton, showLockButton); customMessages = v(.customMessages, customMessages)
+        titleFont = v(.titleFont, titleFont); subtitleFont = v(.subtitleFont, subtitleFont); timerFont = v(.timerFont, timerFont)
         startSound = v(.startSound, startSound); endSound = v(.endSound, endSound)
         startHook = v(.startHook, startHook); endHook = v(.endHook, endHook)
         shortcutsEnabled = v(.shortcutsEnabled, shortcutsEnabled); showTimeInMenuBar = v(.showTimeInMenuBar, showTimeInMenuBar)

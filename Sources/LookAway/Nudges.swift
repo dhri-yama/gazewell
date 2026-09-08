@@ -6,6 +6,7 @@ import LookAwayCore
 /// Time-driven (no @State) so it also works on toolchains without SwiftUI's macro plugin.
 struct NudgeView: View {
     var nudge: Nudge
+    var font = FontSpec(family: "system", weight: 2)
     var start = Date()
     static let life = 5.0
     private let k: CGFloat = 2        // glyph scale: big enough to read across a full-screen blur
@@ -20,7 +21,7 @@ struct NudgeView: View {
             let eased = 1 - pow(1 - enter, 3)
             VStack(spacing: 14 * k) {
                 glyph(t)
-                Text(nudge.message).font(.system(size: 15 * k * 0.85, weight: .medium)).foregroundStyle(.white.opacity(0.92))
+                Text(nudge.message).font(font.font(15 * k * 0.85)).foregroundStyle(.white.opacity(0.92))
                     .multilineTextAlignment(.center).frame(maxWidth: 620)
                     .shadow(color: .black.opacity(0.5), radius: 4)
             }
@@ -120,7 +121,7 @@ final class Nudges {
             blur.material = .hudWindow
             blur.blendingMode = .behindWindow
             blur.state = .active
-            let host = NSHostingView(rootView: ZStack { tint; NudgeView(nudge: n) })
+            let host = NSHostingView(rootView: ZStack { tint; NudgeView(nudge: n, font: store.settings.subtitleFont) })
             host.frame = blur.bounds
             host.autoresizingMask = [.width, .height]
             blur.addSubview(host)

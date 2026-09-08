@@ -77,20 +77,20 @@ struct BreakView: View {
         VStack(spacing: 0) {
             if settings.showClock {
                 (Text("Current time is ") + Text(Self.time.string(from: Date())).fontWeight(.semibold))
-                    .font(.system(size: 22, weight: .medium)).foregroundStyle(.white.opacity(0.85))
+                    .font(settings.subtitleFont.font(22)).foregroundStyle(.white.opacity(0.85))
                     .padding(.top, 70)
             }
             Spacer()
             VStack(spacing: 22) {
                 Text(copy.title)
-                    .font(.system(size: 72, weight: .bold)).foregroundStyle(.white)
+                    .font(settings.titleFont.font(72)).foregroundStyle(.white)
                     .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center)
                 Text(copy.subtitle)
-                    .font(.system(size: 30, weight: .regular)).foregroundStyle(.white.opacity(0.8))
+                    .font(settings.subtitleFont.font(30)).foregroundStyle(.white.opacity(0.8))
                     .multilineTextAlignment(.center).lineLimit(3)
                 Rectangle().fill(.white.opacity(0.25)).frame(width: 400, height: 1).padding(.vertical, 22)
                 Text(clock)
-                    .font(.system(size: 64, weight: .semibold)).monospacedDigit()
+                    .font(settings.timerFont.font(64)).monospacedDigit()
                     .foregroundStyle(.white.opacity(0.5))
                     .accessibilityLabel(spoken)
             }

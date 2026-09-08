@@ -181,8 +181,48 @@ struct ScreenBreaksPane: View {
 
 // MARK: Break screen
 
+private struct FontRow: View {
+    var title: String
+    @Binding var spec: FontSpec
+    var body: some View {
+        Row(title: title) {
+            HStack(spacing: 8) {
+                Dropdown(label: "\(title) font", selection: $spec.family, options: FontSpec.allFamilies)
+                Dropdown(label: "\(title) weight", selection: $spec.weight, options: FontSpec.weights.enumerated().map { ($0.offset, $0.element) })
+            }
+        }
+    }
+}
+
+/// Live sample of the three type roles on the break-screen glow.
+private struct FontPreview: View {
+    var settings: AppSettings
+    var body: some View {
+        VStack(spacing: 8) {
+            Text("Catch a quick rest").font(settings.titleFont.font(34)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.5)
+            Text("Focus on a distant point until it's time to resume").font(settings.subtitleFont.font(15)).foregroundStyle(.white.opacity(0.8))
+            Text("00:20").font(settings.timerFont.font(26)).monospacedDigit().foregroundStyle(.white.opacity(0.55)).padding(.top, 4)
+        }
+        .frame(maxWidth: .infinity).padding(.vertical, 22)
+        .background(Backdrop(theme: settings.theme, image: nil, reduceMotion: true))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
+        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.cardStroke, lineWidth: 1))
+        .accessibilityHidden(true)
+    }
+}
+
 struct BreakScreenPane: View {
     @ObservedObject var store: SettingsStore
+
+    private var currentPreset: String {
+        let s = store.settings
+        return FontPreset.all.first { $0.title == s.titleFont && $0.subtitle == s.subtitleFont && $0.timer == s.timerFont }?.name ?? "Custom"
+    }
+
+    private func apply(_ name: String) {
+        guard let p = FontPreset.all.first(where: { $0.name == name }) else { return }
+        store.settings.titleFont = p.title; store.settings.subtitleFont = p.subtitle; store.settings.timerFont = p.timer
+    }
 
     private func swatch(_ t: BreakTheme) -> some View {
         let p = Theme.palette(t)
@@ -216,6 +256,20 @@ struct BreakScreenPane: View {
                 }
             }
         } }
+        Block(title: "Typography") {
+            Card {
+                MenuRow(title: "Pairing", subtitle: "Start from a preset, then adjust each part below",
+                        selection: Binding(get: { currentPreset }, set: { apply($0) }),
+                        options: [("Custom", "Custom")] + FontPreset.all.map { ($0.name, $0.name) })
+                Sep()
+                FontRow(title: "Title", spec: $store.settings.titleFont)
+                Sep()
+                FontRow(title: "Subtitle and clock", spec: $store.settings.subtitleFont)
+                Sep()
+                FontRow(title: "Countdown", spec: $store.settings.timerFont)
+            }
+            FontPreview(settings: store.settings)
+        }
         Block(title: "Display") { Card {
             ToggleRow(title: "Show current time", subtitle: "\u{201C}Current time is 14:58\u{201D} at the top", isOn: $store.settings.showClock)
             Sep()

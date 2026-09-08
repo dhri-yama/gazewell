@@ -6,6 +6,8 @@ import LookAwayCore
 struct HeadsUpCard: View {
     @ObservedObject var scheduler: BreakScheduler
     var canSnooze: Bool
+    var timerFont = FontSpec(family: "system", weight: 4)
+    var textFont = FontSpec(family: "system", weight: 1)
 
     private var clock: String { String(format: "%02d:%02d", scheduler.secondsLeft / 60, scheduler.secondsLeft % 60) }
 
@@ -16,8 +18,8 @@ struct HeadsUpCard: View {
                     .frame(width: 52, height: 52)
                     .background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 13))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(clock).font(.system(size: 28, weight: .bold)).monospacedDigit().foregroundStyle(.white)
-                    Text("Almost time. Your eyes will appreciate this.").font(.system(size: 15)).foregroundStyle(.white.opacity(0.75))
+                    Text(clock).font(timerFont.font(28)).monospacedDigit().foregroundStyle(.white)
+                    Text("Almost time. Your eyes will appreciate this.").font(textFont.font(15)).foregroundStyle(.white.opacity(0.75))
                 }
             }
             HStack(spacing: 8) {
@@ -100,7 +102,7 @@ final class HeadsUp {
 
     private func show(_ scheduler: BreakScheduler) {
         hide()
-        let card = makePanel(HeadsUpCard(scheduler: scheduler, canSnooze: canSnooze()))
+        let card = makePanel(HeadsUpCard(scheduler: scheduler, canSnooze: canSnooze(), timerFont: store.settings.timerFont, textFont: store.settings.subtitleFont))
         if let f = NSScreen.main?.visibleFrame {
             card.setFrameOrigin(NSPoint(x: f.midX - card.frame.width / 2, y: f.maxY - card.frame.height - 14))
         }
