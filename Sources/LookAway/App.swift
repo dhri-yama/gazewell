@@ -8,12 +8,14 @@ final class AppModel {
     let store: SettingsStore
     let overlay: BreakOverlay
     let headsUp: HeadsUp
+    let chime: Chime
     private var timer: Timer?
 
     init() {
         store = SettingsStore(scheduler: scheduler)
-        overlay = BreakOverlay(scheduler: scheduler)
+        overlay = BreakOverlay(scheduler: scheduler, store: store)
         headsUp = HeadsUp(scheduler: scheduler)
+        chime = Chime(scheduler: scheduler, store: store)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
     }
 

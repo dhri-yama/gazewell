@@ -1,4 +1,6 @@
 import SwiftUI
+import AppKit
+import UniformTypeIdentifiers
 import LookAwayCore
 
 private struct RuleEditor: View {
@@ -51,6 +53,48 @@ private struct PlannedEditor: View {
     }
 }
 
+private func chooseFile(types: [UTType], _ pick: (String) -> Void) {
+    let p = NSOpenPanel()
+    p.allowedContentTypes = types
+    p.allowsMultipleSelection = false
+    if p.runModal() == .OK, let url = p.url { pick(url.path) }
+}
+
+private struct AppearanceTab: View {
+    @ObservedObject var store: SettingsStore
+
+    var body: some View {
+        Form {
+            Picker("Background", selection: $store.settings.background) {
+                Text("Dusk gradient").tag(BackgroundStyle.gradient)
+                Text("Desktop wallpaper").tag(BackgroundStyle.wallpaper)
+                Text("Custom image").tag(BackgroundStyle.image)
+            }
+            if store.settings.background == .image {
+                HStack {
+                    Text(store.settings.imagePath.isEmpty ? "No image chosen" : (store.settings.imagePath as NSString).lastPathComponent)
+                        .foregroundStyle(.secondary).lineLimit(1)
+                    Button("Choose…") { chooseFile(types: [.image]) { store.settings.imagePath = $0 } }
+                }
+            }
+            Picker("Sound", selection: $store.settings.sound) {
+                Text("None").tag("")
+                ForEach(Chime.systemSounds, id: \.self) { Text($0).tag($0) }
+                Text("Custom file").tag("custom")
+            }
+            if store.settings.sound == "custom" {
+                HStack {
+                    Text(store.settings.soundPath.isEmpty ? "No file chosen" : (store.settings.soundPath as NSString).lastPathComponent)
+                        .foregroundStyle(.secondary).lineLimit(1)
+                    Button("Choose…") { chooseFile(types: [.audio]) { store.settings.soundPath = $0 } }
+                }
+            }
+            Button("Preview a break") { store.scheduler.startBreak(duration: 6) }
+        }
+        .padding(24)
+    }
+}
+
 struct SettingsView: View {
     @ObservedObject var store: SettingsStore
 
@@ -64,6 +108,9 @@ struct SettingsView: View {
             }
             .padding(24)
             .tabItem { Label("Breaks", systemImage: "eye") }
+
+            AppearanceTab(store: store)
+                .tabItem { Label("Appearance", systemImage: "paintpalette") }
 
             VStack(alignment: .leading) {
                 Text("Fixed-time breaks, like lunch. They still wait for calls and focus.").foregroundStyle(.secondary)

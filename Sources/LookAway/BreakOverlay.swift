@@ -13,9 +13,21 @@ final class BreakOverlay {
     private var windows: [NSWindow] = []
     private var sub: AnyCancellable?
 
-    init(scheduler: BreakScheduler) {
+    private let store: SettingsStore
+
+    init(scheduler: BreakScheduler, store: SettingsStore) {
+        self.store = store
         sub = scheduler.$phase.removeDuplicates().sink { [weak self] phase in
             phase == .breaking ? self?.show(scheduler) : self?.hide()
+        }
+    }
+
+    private func background(for screen: NSScreen) -> NSImage? {
+        let s = store.settings
+        switch s.background {
+        case .gradient: return nil
+        case .image: return NSImage(contentsOfFile: s.imagePath)
+        case .wallpaper: return NSWorkspace.shared.desktopImageURL(for: screen).flatMap { NSImage(contentsOf: $0) }
         }
     }
 
@@ -27,7 +39,7 @@ final class BreakOverlay {
             w.level = .screenSaver
             w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             w.isReleasedWhenClosed = false
-            w.contentView = NSHostingView(rootView: BreakView(scheduler: scheduler, onSkip: skip))
+            w.contentView = NSHostingView(rootView: BreakView(scheduler: scheduler, background: background(for: screen), onSkip: skip))
             w.alphaValue = 0
             w.setFrame(screen.frame, display: true)
             return w

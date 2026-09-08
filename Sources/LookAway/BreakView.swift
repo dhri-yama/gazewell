@@ -4,12 +4,12 @@ import LookAwayCore
 
 struct BreakView: View {
     @ObservedObject var scheduler: BreakScheduler
+    var background: NSImage?
     var onSkip: () -> Void
     private let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
 
     var body: some View {
         ZStack {
-            Theme.sky.ignoresSafeArea()
             VStack(spacing: 40) {
                 Text(scheduler.activeRule.title.uppercased())
                     .font(.callout.weight(.medium)).tracking(3)
@@ -41,5 +41,15 @@ struct BreakView: View {
                     .padding(.bottom, 40)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background {
+            if let background {
+                // Photos get a scrim so white text keeps 4.5:1 contrast on any image.
+                Image(nsImage: background).resizable().scaledToFill().overlay(Color.black.opacity(0.5)).clipped()
+            } else {
+                Theme.sky
+            }
+        }
+        .ignoresSafeArea()
     }
 }

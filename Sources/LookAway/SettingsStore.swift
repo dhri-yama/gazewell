@@ -2,6 +2,8 @@ import Foundation
 import Combine
 import LookAwayCore
 
+enum BackgroundStyle: String, Codable, CaseIterable { case gradient, wallpaper, image }
+
 struct AppSettings: Codable, Equatable {
     var rules = BreakRule.defaults
     var planned: [BreakRule] = []
@@ -10,6 +12,11 @@ struct AppSettings: Codable, Equatable {
     var pauseForRecording = true
     var pauseForVideo = true
     var pauseForFullscreen = true
+    var background = BackgroundStyle.gradient
+    var imagePath = ""
+    /// "" = silent, "custom" = soundPath, otherwise a system sound name.
+    var sound = ""
+    var soundPath = ""
 
     init() {}
 
@@ -23,6 +30,10 @@ struct AppSettings: Codable, Equatable {
         pauseForRecording = try c.decodeIfPresent(Bool.self, forKey: .pauseForRecording) ?? pauseForRecording
         pauseForVideo = try c.decodeIfPresent(Bool.self, forKey: .pauseForVideo) ?? pauseForVideo
         pauseForFullscreen = try c.decodeIfPresent(Bool.self, forKey: .pauseForFullscreen) ?? pauseForFullscreen
+        background = try c.decodeIfPresent(BackgroundStyle.self, forKey: .background) ?? background
+        imagePath = try c.decodeIfPresent(String.self, forKey: .imagePath) ?? imagePath
+        sound = try c.decodeIfPresent(String.self, forKey: .sound) ?? sound
+        soundPath = try c.decodeIfPresent(String.self, forKey: .soundPath) ?? soundPath
     }
 }
 
@@ -30,7 +41,7 @@ struct AppSettings: Codable, Equatable {
 final class SettingsStore: ObservableObject {
     private static let key = "settings.v1"
     @Published var settings: AppSettings { didSet { save(); apply() } }
-    private let scheduler: BreakScheduler
+    let scheduler: BreakScheduler
 
     init(scheduler: BreakScheduler) {
         self.scheduler = scheduler
