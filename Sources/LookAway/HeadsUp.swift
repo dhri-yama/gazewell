@@ -47,6 +47,7 @@ struct CapsuleButton: ButtonStyle {
             .padding(.horizontal, 16).padding(.vertical, 9)
             .background(fill, in: Capsule())
             .opacity(configuration.isPressed ? 0.7 : 1)
+            .pressSpring(configuration.isPressed)
     }
 }
 

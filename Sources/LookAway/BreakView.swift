@@ -37,7 +37,7 @@ private struct Pill: View {
             .background(.white.opacity(enabled ? 0.18 : 0.1), in: Capsule())
             .foregroundStyle(.white.opacity(enabled ? 1 : 0.6))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(PressStyle())
         .disabled(!enabled)
     }
 }

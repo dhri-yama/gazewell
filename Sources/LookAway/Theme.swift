@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 /// Design tokens from docs/design-direction.md (revision 2: match real LookAway).
 enum Theme {
@@ -29,4 +30,16 @@ enum Theme {
     static func tile(_ colors: [UInt32]) -> LinearGradient {
         LinearGradient(colors: colors.map { hex($0) }, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
+}
+
+extension View {
+    /// Springy shrink while pressed (the mobile-ui skill's press pattern); skipped under Reduce Motion.
+    func pressSpring(_ pressed: Bool) -> some View {
+        scaleEffect(pressed ? 0.95 : 1)
+            .animation(NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.55), value: pressed)
+    }
+}
+
+struct PressStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View { configuration.label.pressSpring(configuration.isPressed) }
 }

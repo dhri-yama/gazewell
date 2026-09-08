@@ -7,7 +7,7 @@ private struct TileButton: View {
     var symbol: String
     var action: () -> Void
     var body: some View {
-        Button(action: action) { tileLabel(title, symbol) }.buttonStyle(.plain)
+        Button(action: action) { tileLabel(title, symbol) }.buttonStyle(PressStyle())
     }
 }
 

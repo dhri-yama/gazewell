@@ -174,6 +174,7 @@ struct ControlButton: ButtonStyle {
             .padding(.horizontal, 12).frame(height: Control.height)
             .background(primary ? Theme.accent : Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
             .opacity(configuration.isPressed ? 0.7 : 1)
+            .pressSpring(configuration.isPressed)
     }
 }
 
@@ -196,6 +197,7 @@ struct IconButton: View {
             configuration.label.foregroundStyle(.white)
                 .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
                 .opacity(configuration.isPressed ? 0.7 : 1)
+                .pressSpring(configuration.isPressed)
         }
     }
 }
