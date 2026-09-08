@@ -33,7 +33,7 @@ enum Snapshots {
         shot("headsup", HeadsUpCard(scheduler: hu, canSnooze: true).padding(20).background(Color.gray), CGSize(width: 500, height: 190))
         shot("pill", CursorPill(scheduler: hu).padding(20).background(Color.gray), CGSize(width: 260, height: 60))
         for (i, n) in Nudge.defaults.enumerated() {
-            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 340, height: 260))
+            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 760, height: 560))
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats), CGSize(width: 320, height: 330))
         let nav = SettingsNav()

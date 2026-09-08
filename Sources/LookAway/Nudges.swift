@@ -8,6 +8,7 @@ struct NudgeView: View {
     var nudge: Nudge
     var start = Date()
     static let life = 5.0
+    private let k: CGFloat = 2        // glyph scale: big enough to read across a full-screen blur
     private static let plum = Theme.hex(0x4A1230)
     private static let disc = LinearGradient(colors: [Theme.hex(0xE85AB8), Theme.hex(0xF59A55)], startPoint: .topLeading, endPoint: .bottomTrailing)
     private let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
@@ -17,10 +18,10 @@ struct NudgeView: View {
             let t = reduceMotion ? 1.2 : ctx.date.timeIntervalSince(start)
             let enter = min(1, t / 0.45), exit = min(1, max(0, (Self.life - t) / 0.5))
             let eased = 1 - pow(1 - enter, 3)
-            VStack(spacing: 14) {
+            VStack(spacing: 14 * k) {
                 glyph(t)
-                Text(nudge.message).font(.system(size: 15, weight: .medium)).foregroundStyle(.white.opacity(0.9))
-                    .multilineTextAlignment(.center).frame(maxWidth: 280)
+                Text(nudge.message).font(.system(size: 15 * k * 0.85, weight: .medium)).foregroundStyle(.white.opacity(0.92))
+                    .multilineTextAlignment(.center).frame(maxWidth: 620)
                     .shadow(color: .black.opacity(0.5), radius: 4)
             }
             .padding(24)
@@ -44,10 +45,10 @@ struct NudgeView: View {
         let p = (1 - cos(2 * .pi * t / 2.4)) / 2          // 0 at the bottom, 1 at the top
         return ZStack {
             Capsule().fill(Theme.hex(0x2A1326, 0.82)).overlay(Capsule().stroke(.white.opacity(0.1), lineWidth: 1))
-                .frame(width: 66, height: 134)
-            Circle().fill(Self.disc).frame(width: 54, height: 54)
-                .overlay(Image(systemName: "arrow.up").font(.system(size: 22, weight: .black)).foregroundStyle(Self.plum))
-                .offset(y: 32 - 64 * p)
+                .frame(width: 66 * k, height: 134 * k)
+            Circle().fill(Self.disc).frame(width: 54 * k, height: 54 * k)
+                .overlay(Image(systemName: "arrow.up").font(.system(size: 22 * k, weight: .black)).foregroundStyle(Self.plum))
+                .offset(y: (32 - 64 * p) * k)
         }
     }
 
@@ -56,21 +57,21 @@ struct NudgeView: View {
         let c = (t / 1.6).truncatingRemainder(dividingBy: 1)
         let open = c < 0.78 ? 1 : (c < 0.88 ? 1 - (c - 0.78) / 0.1 : (c - 0.88) / 0.12)
         return ZStack {
-            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96, height: 96)
-            Circle().fill(Self.disc).frame(width: 74, height: 74)
-            HStack(spacing: 14) {
-                ForEach(0..<2, id: \.self) { _ in Capsule().fill(Self.plum).frame(width: 14, height: max(3, 13 * open)) }
+            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
+            Circle().fill(Self.disc).frame(width: 74 * k, height: 74 * k)
+            HStack(spacing: 14 * k) {
+                ForEach(0..<2, id: \.self) { _ in Capsule().fill(Self.plum).frame(width: 14 * k, height: max(3 * k, 13 * k * open)) }
             }
-            .offset(y: 2)
+            .offset(y: 2 * k)
         }
     }
 
     /// Water and stretch: the symbol breathes inside the same disc.
     private func pulse(_ t: Double) -> some View {
         ZStack {
-            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96, height: 96)
-            Circle().fill(Self.disc).frame(width: 74, height: 74)
-            Image(systemName: nudge.symbol).font(.system(size: 30, weight: .bold)).foregroundStyle(Self.plum)
+            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
+            Circle().fill(Self.disc).frame(width: 74 * k, height: 74 * k)
+            Image(systemName: nudge.symbol).font(.system(size: 30 * k, weight: .bold)).foregroundStyle(Self.plum)
                 .scaleEffect(1 + 0.12 * sin(2 * .pi * t / 1.6))
         }
     }
@@ -79,7 +80,8 @@ struct NudgeView: View {
 /// Wellness reminders (posture, blink, water, stretch): a short animation, never a full break.
 final class Nudges {
     private var due: [String: Date] = [:]
-    private var panel: NSPanel?
+    private var windows: [NSWindow] = []
+    private var token: UUID?
     private let scheduler: BreakScheduler
     private let store: SettingsStore
 
@@ -101,19 +103,53 @@ final class Nudges {
         }
     }
 
+    /// Blurs every display and plays the glyph on each, then fades out.
     func show(_ n: Nudge) {
-        panel?.orderOut(nil)
-        let p = makePanel(NudgeView(nudge: n))
-        p.ignoresMouseEvents = true
-        p.hasShadow = false
-        if let f = NSScreen.main?.visibleFrame {
-            p.setFrameOrigin(NSPoint(x: f.midX - p.frame.width / 2, y: f.midY - p.frame.height / 2))
+        close()
+        let tint = Color.black.opacity(0.3)
+        windows = NSScreen.screens.map { screen in
+            let w = NSWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
+            w.level = .screenSaver
+            w.isOpaque = false
+            w.backgroundColor = .clear
+            w.hasShadow = false
+            w.ignoresMouseEvents = true      // never blocks typing or clicking underneath
+            w.isReleasedWhenClosed = false
+            w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
+            let blur = NSVisualEffectView(frame: NSRect(origin: .zero, size: screen.frame.size))
+            blur.material = .hudWindow
+            blur.blendingMode = .behindWindow
+            blur.state = .active
+            let host = NSHostingView(rootView: ZStack { tint; NudgeView(nudge: n) })
+            host.frame = blur.bounds
+            host.autoresizingMask = [.width, .height]
+            blur.addSubview(host)
+            w.contentView = blur
+            w.alphaValue = 0
+            w.setFrame(screen.frame, display: true)
+            w.orderFrontRegardless()
+            return w
         }
-        p.orderFrontRegardless()
-        panel = p
-        DispatchQueue.main.asyncAfter(deadline: .now() + NudgeView.life + 0.1) { [weak self, weak p] in
-            guard let p, self?.panel === p else { return }
-            p.orderOut(nil); self?.panel = nil
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        fade(to: 1, over: reduce ? 0 : 0.4)
+        let token = UUID(); self.token = token
+        DispatchQueue.main.asyncAfter(deadline: .now() + NudgeView.life - 0.5) { [weak self] in
+            guard self?.token == token else { return }
+            self?.fade(to: 0, over: reduce ? 0 : 0.5)
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + NudgeView.life + 0.1) { [weak self] in
+            guard self?.token == token else { return }
+            self?.close()
+        }
+    }
+
+    private func fade(to alpha: CGFloat, over duration: TimeInterval) {
+        NSAnimationContext.runAnimationGroup { $0.duration = duration; windows.forEach { $0.animator().alphaValue = alpha } }
+    }
+
+    private func close() {
+        token = nil
+        windows.forEach { $0.orderOut(nil) }
+        windows = []
     }
 }
