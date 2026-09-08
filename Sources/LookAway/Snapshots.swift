@@ -35,7 +35,7 @@ enum Snapshots {
         for (i, n) in Nudge.defaults.enumerated() {
             shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 760, height: 560))
         }
-        shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats), CGSize(width: 320, height: 330))
+        shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats), CGSize(width: 360, height: 420))
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane

@@ -7,50 +7,36 @@ private final class HoverModel: ObservableObject { @Published var on = false }
 
 private let glassStroke = Color.white.opacity(0.12)
 
-private struct TileButton: View {
+private struct RowLabel: View {
     var title: String
     var symbol: String
-    var tint: Color?
-    var action: () -> Void
-    var body: some View {
-        Button(action: action) { tileLabel(title, symbol, tint: tint) }.buttonStyle(PressStyle())
-    }
-}
+    var trailing: String?
+    var chevron = false
+    @StateObject private var hover = HoverModel()
 
-private func tileLabel(_ title: String, _ symbol: String, tint: Color? = nil) -> some View {
-    VStack(spacing: 7) {
-        Image(systemName: symbol).font(.system(size: 17, weight: .semibold))
-        Text(title).font(.system(size: 12, weight: .medium))
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.system(size: 15, weight: .medium)).frame(width: 22).foregroundStyle(.white.opacity(0.65))
+            Text(title)
+            Spacer()
+            if let trailing { Text(trailing).foregroundStyle(.white.opacity(0.45)) }
+            if chevron { Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.45)) }
+        }
+        .font(.system(size: 15)).foregroundStyle(.white)
+        .padding(.horizontal, 12).frame(height: 40)
+        .background(.white.opacity(hover.on ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 10))
+        .contentShape(Rectangle())
+        .onHover { hover.on = $0 }
     }
-    .foregroundStyle(.white)
-    .frame(maxWidth: .infinity).padding(.vertical, 13)
-    .background((tint ?? .white).opacity(tint == nil ? 0.08 : 0.32), in: RoundedRectangle(cornerRadius: 14))
-    .overlay(RoundedRectangle(cornerRadius: 14).stroke(glassStroke, lineWidth: 1))
-    .contentShape(RoundedRectangle(cornerRadius: 14))
 }
 
 private struct RowButton: View {
     var title: String
     var symbol: String
-    var shortcut: String
+    var shortcut: String?
     var action: () -> Void
-    @StateObject private var hover = HoverModel()
-
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: symbol).frame(width: 20).foregroundStyle(.white.opacity(0.6))
-                Text(title)
-                Spacer()
-                Text(shortcut).foregroundStyle(.white.opacity(0.5))
-            }
-            .font(.system(size: 14)).foregroundStyle(.white)
-            .padding(.horizontal, 10).padding(.vertical, 8)
-            .background(.white.opacity(hover.on ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 9))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .onHover { hover.on = $0 }
+        Button(action: action) { RowLabel(title: title, symbol: symbol, trailing: shortcut) }.buttonStyle(.plain)
     }
 }
 
@@ -85,56 +71,55 @@ struct MenuPopover: View {
         let today = stats.stats.day(Date())
         let streak = stats.stats.streak()
         VStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(heading).font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.65))
+            VStack(alignment: .leading, spacing: 6) {
+                Text(heading).font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.65))
                 if scheduler.hasUpcoming && !paused {
-                    Text(clock).font(.system(size: 44, weight: .bold)).monospacedDigit().foregroundStyle(.white)
+                    Text(clock).font(.system(size: 52, weight: .bold)).monospacedDigit().foregroundStyle(.white)
                 } else {
-                    Text(paused ? "Paused" : "—").font(.system(size: 44, weight: .bold)).foregroundStyle(.white.opacity(0.5))
+                    Text(paused ? "Paused" : "—").font(.system(size: 52, weight: .bold)).foregroundStyle(.white.opacity(0.5))
                 }
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
                         Capsule().fill(.white.opacity(0.14))
-                        Capsule().fill(.white.opacity(0.85)).frame(width: max(5, g.size.width * progress))
+                        Capsule().fill(.white.opacity(0.85)).frame(width: max(8, g.size.width * progress))
                     }
                 }
-                .frame(height: 5).padding(.top, 8)
+                .frame(height: 8).padding(.top, 10)
                 .accessibilityHidden(true)
+                Text("Today · \(today.taken) taken · \(today.skipped) skipped\(streak > 1 ? " · \(streak)-day streak" : "")")
+                    .font(.system(size: 13)).foregroundStyle(.white.opacity(0.55)).padding(.top, 6)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 18).padding(.top, 18).padding(.bottom, 14)
+            .padding(.horizontal, 22).padding(.vertical, 22)
 
-            HStack(spacing: 8) {
-                TileButton(title: "Start break", symbol: "play.fill", tint: Theme.accent) { dismissPopover(); scheduler.startBreak() }
-                TileButton(title: "Skip next", symbol: "forward.fill", tint: nil) { dismissPopover(); scheduler.endBreak() }
+            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
+            VStack(spacing: 2) {
+                RowButton(title: "Start break now", symbol: "play.fill", shortcut: "⌃⌥B") { dismissPopover(); scheduler.startBreak() }
+                RowButton(title: "Skip next break", symbol: "forward.fill", shortcut: "⌃⌥S") { dismissPopover(); scheduler.endBreak() }
                     .disabled(scheduler.phase == .breaking).opacity(scheduler.phase == .breaking ? 0.4 : 1)
                 if paused {
-                    TileButton(title: "Resume", symbol: "play.circle", tint: nil) { scheduler.pausedUntil = nil }
+                    RowButton(title: "Resume breaks", symbol: "play.circle", shortcut: "⌃⌥P") { scheduler.pausedUntil = nil }
                 } else {
                     Menu {
                         Button("For 1 hour") { scheduler.pausedUntil = Date().addingTimeInterval(3600) }
                         Button("For 4 hours") { scheduler.pausedUntil = Date().addingTimeInterval(4 * 3600) }
                         Button("Until I turn it back on") { scheduler.pausedUntil = .distantFuture }
-                    } label: { tileLabel("Pause", "pause.fill") }
+                    } label: { RowLabel(title: "Pause breaks", symbol: "pause.fill", trailing: nil, chevron: true) }
                     .menuStyle(.button).menuIndicator(.hidden).buttonStyle(.plain)
                 }
             }
-            .padding(.horizontal, 14)
+            .padding(10)
 
-            Text("Today · \(today.taken) taken · \(today.skipped) skipped\(streak > 1 ? " · \(streak)-day streak" : "")")
-                .font(.system(size: 12)).foregroundStyle(.white.opacity(0.55))
-                .frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 18).padding(.top, 14)
-
-            Rectangle().fill(.white.opacity(0.1)).frame(height: 1).padding(.top, 14)
+            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
             VStack(spacing: 2) {
                 RowButton(title: "Settings…", symbol: "gearshape", shortcut: "⌘,") { dismissPopover(); SettingsWindow.show(store: store, stats: stats) }
                     .keyboardShortcut(",")
                 RowButton(title: "Quit LookAway", symbol: "power", shortcut: "⌘Q") { NSApp.terminate(nil) }
                     .keyboardShortcut("q")
             }
-            .padding(8)
+            .padding(10)
         }
-        .frame(width: 320)
+        .frame(width: 360)
         .background {
             // Same family as the break screen: a warm olive glow over a blurred, dark glass.
             ZStack {
