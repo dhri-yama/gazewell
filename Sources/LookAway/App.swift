@@ -23,7 +23,7 @@ final class AppModel {
         let sched = scheduler
         hotkeys.register(key: kVK_ANSI_B) { sched.startBreak() }
         hotkeys.register(key: kVK_ANSI_S) { if sched.phase != .breaking { sched.endBreak() } }
-        hotkeys.register(key: kVK_ANSI_P) { sched.pausedUntil = sched.pausedUntil == nil ? Date().addingTimeInterval(3600) : nil }
+        hotkeys.register(key: kVK_ANSI_P) { sched.pausedUntil = sched.pausedUntil == nil ? .distantFuture : nil }
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in self?.tick() }
     }
 
@@ -65,6 +65,7 @@ struct LookAwayApp: App {
                 Menu("Pause breaks") {
                     Button("For 1 hour") { scheduler.pausedUntil = Date().addingTimeInterval(3600) }
                     Button("For 4 hours") { scheduler.pausedUntil = Date().addingTimeInterval(4 * 3600) }
+                    Button("Until I turn it back on") { scheduler.pausedUntil = .distantFuture }
                 }
             }
             Button("Settings…") { SettingsWindow.show(store: AppModel.shared.store) }.keyboardShortcut(",")

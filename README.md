@@ -7,4 +7,4 @@ Menu bar break reminders for macOS 13+: eyes, posture, blink, planned breaks, sm
 ./test.sh                          # scheduler tests
 ```
 
-Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip next, ⌃⌥P pause/resume.
+Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip next, ⌃⌥P turn breaks off/on.

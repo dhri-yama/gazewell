@@ -149,7 +149,7 @@ struct SettingsView: View {
                     TextField("Start: Shortcut name or AppleScript path", text: $store.settings.startHook)
                     TextField("End: Shortcut name or AppleScript path", text: $store.settings.endHook)
                 }
-                Text("Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip the next break, ⌃⌥P pause or resume.")
+                Text("Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip the next break, ⌃⌥P turn breaks off or on.")
                     .font(.callout).foregroundStyle(.secondary)
             }
             .padding(24)
