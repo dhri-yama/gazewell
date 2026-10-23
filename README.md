@@ -16,6 +16,7 @@ Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
 
 ```sh
 ./bundle.sh && open LookAway.app   # build and run
+./dmg.sh                           # build LookAway.dmg for installing
 ./test.sh                          # scheduler tests
 ```
 
