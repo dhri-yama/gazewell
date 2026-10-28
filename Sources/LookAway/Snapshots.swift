@@ -47,7 +47,7 @@ enum Snapshots {
         var clockNow = Date()
         let grown = BreakScheduler(now: { clockNow }); grown.startBreak(duration: 20); clockNow += 14; grown.tick()
         // Direction comparison: every surface once per style.
-        let presetFor: [String: Int] = ["Headspace": 4, "Forest": 4, "Paper glass": 0, "Mono focus": 3]
+        let presetFor: [String: Int] = ["Headspace": 4, "Forest": 4, "Medito": 0, "Paper glass": 0, "Mono focus": 3]
         for style in Style.all {
             Theme.style = style
             let slug = style.name.lowercased().replacingOccurrences(of: " ", with: "-")

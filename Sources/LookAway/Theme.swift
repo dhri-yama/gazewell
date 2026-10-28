@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case centered, editorial, sun, forest }
+enum BreakLayout { case centered, editorial, sun, forest, breathe }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -55,6 +55,16 @@ extension Style {
         cardSolid: hex(0x0F3A2B, 0.94), breakLayout: .forest, glyph: [0xB5E36F, 0x3FAE6A], glyphInk: 0x0B2E1F,
         onAccent: hex(0x06231A))
 
+    /// Midnight blue glass, one warm gold accent, a breathing ring with Breathe in / out prompts. Inspired by meditation apps; no third-party assets.
+    static let medito = Style(
+        name: "Medito", dark: true, ink: hex(0xEEF1FA), veil: hex(0x050A1C, 0.5), sidebar: hex(0x030715, 0.4),
+        cardOpacity: 0.07, strokeOpacity: 0.12, hairlineOpacity: 0.1, accent: hex(0xF2C14E),
+        glowA: hex(0x3B4BA8, 0.5), glowB: hex(0xF2C14E, 0.16),
+        backdrop: (hex(0x070C24), [hex(0x1E2A78), hex(0x2F3C9E), hex(0x151F5C), hex(0x4B3A8A)]),
+        tileOverride: [0x6B7BEA, 0x3B4BA8], cardRadius: 22, controlRadius: 14, displayDesign: .default, material: .hudWindow,
+        cardSolid: hex(0x0E1536, 0.94), breakLayout: .breathe, glyph: [0xFFE08A, 0xF2C14E], glyphInk: 0x2B2000,
+        onAccent: hex(0x1B1500))
+
     /// Light frosted paper over soft pastel light, dark ink, serif headings.
     static let paper = Style(
         name: "Paper glass", dark: false, ink: hex(0x1C1B22), veil: hex(0xFFF7EE, 0.45), sidebar: hex(0xFFFFFF, 0.28),
@@ -74,7 +84,7 @@ extension Style {
         cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
         onAccent: hex(0x10130A))
 
-    static let all = [headspace, forest, paper, mono]
+    static let all = [headspace, forest, medito, paper, mono]
     static func named(_ n: String) -> Style { all.first { $0.name == n } ?? headspace }
 }
 

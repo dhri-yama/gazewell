@@ -246,9 +246,49 @@ struct BreakView: View {
         }
     }
 
+    /// Breathe: a gold progress ring around a softly pulsing disc, with Breathe in / out prompts every 4 seconds.
+    private var breathe: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let progress = Double(scheduler.elapsed) / Double(max(1, scheduler.breakLength))
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 70) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(52)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.75))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 12)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                // 8s cycle: 4s in, 4s out
+                let t = reduce ? 0 : ctx.date.timeIntervalSinceReferenceDate.truncatingRemainder(dividingBy: 8)
+                let inhale = t < 4
+                let ease = (1 - cos(.pi * (inhale ? t / 4 : (t - 4) / 4))) / 2     // 0...1 within each half
+                let size = inhale ? ease : 1 - ease
+                ZStack {
+                    Circle().stroke(Theme.ink(0.12), lineWidth: 4).frame(width: 380, height: 380)
+                    Circle().trim(from: 0, to: progress).stroke(Theme.accent, style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                        .frame(width: 380, height: 380).rotationEffect(.degrees(-90))
+                    Circle().fill(RadialGradient(colors: [Theme.accent.opacity(0.4), .clear], center: .center, startRadius: 0, endRadius: 170))
+                        .frame(width: 340, height: 340).scaleEffect(0.8 + 0.2 * size)
+                    Circle().fill(Theme.ink(0.1)).frame(width: 250, height: 250).scaleEffect(0.84 + 0.16 * size)
+                    VStack(spacing: 6) {
+                        Text(reduce ? "Breathe" : inhale ? "Breathe in" : "Breathe out")
+                            .font(Theme.display(22, .medium)).foregroundStyle(Theme.accent)
+                        timerText(64, opacity: 0.95)
+                    }
+                }
+            }
+            .frame(height: 400).padding(.top, 26)
+            Spacer()
+            controls.padding(.bottom, 56)
+        }
+    }
+
     var body: some View {
         Group {
             switch Theme.style.breakLayout {
+            case .breathe: breathe
             case .forest: forest
             case .editorial: editorial
             case .sun: sun

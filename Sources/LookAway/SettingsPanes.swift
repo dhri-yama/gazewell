@@ -14,23 +14,29 @@ private struct StyleTile: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                ZStack(alignment: .topLeading) {
-                    style.backdrop.base
-                    ForEach(0..<3, id: \.self) { i in
-                        Circle().fill(RadialGradient(colors: [style.backdrop.blobs[i].opacity(0.85), .clear], center: .center, startRadius: 0, endRadius: 70))
-                            .frame(width: 140, height: 140)
-                            .offset(x: CGFloat(i) * 60 - 30, y: CGFloat(i % 2) * 30 - 40)
-                    }
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("Aa").font(.system(size: 26, weight: .bold, design: style.displayDesign)).foregroundStyle(style.ink)
-                        HStack(spacing: 5) {
-                            RoundedRectangle(cornerRadius: 4).fill(style.accent).frame(width: 30, height: 9)
-                            RoundedRectangle(cornerRadius: 4).fill(style.ink.opacity(0.3)).frame(width: 46, height: 9)
+                // The base colour sets the tile's size; blobs and text are overlays so they can't widen the row.
+                style.backdrop.base
+                    .frame(maxWidth: .infinity).frame(height: 104)
+                    .overlay(alignment: .topLeading) {
+                        ZStack {
+                            ForEach(0..<3, id: \.self) { i in
+                                Circle().fill(RadialGradient(colors: [style.backdrop.blobs[i].opacity(0.85), .clear], center: .center, startRadius: 0, endRadius: 70))
+                                    .frame(width: 140, height: 140)
+                                    .offset(x: CGFloat(i) * 50 - 20, y: CGFloat(i % 2) * 30 - 30)
+                            }
                         }
                     }
-                    .padding(14)
-                }
-                .frame(height: 104).clipped()
+                    .overlay(alignment: .topLeading) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Aa").font(.system(size: 26, weight: .bold, design: style.displayDesign)).foregroundStyle(style.ink)
+                            HStack(spacing: 5) {
+                                RoundedRectangle(cornerRadius: 4).fill(style.accent).frame(width: 26, height: 9)
+                                RoundedRectangle(cornerRadius: 4).fill(style.ink.opacity(0.3)).frame(width: 36, height: 9)
+                            }
+                        }
+                        .padding(14)
+                    }
+                .clipped()
                 .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius - 6))
                 .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius - 6).stroke(Theme.accent, lineWidth: selected ? 3 : 0).padding(-3))
                 Text(style.name).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
