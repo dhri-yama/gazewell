@@ -206,27 +206,6 @@ struct BreakView: View {
         }
     }
 
-    /// Centred stack: clock on top, copy and countdown in the middle, controls at the bottom.
-    private var centered: some View {
-        VStack(spacing: 0) {
-            if settings.showClock { clockLine.padding(.top, 70) }
-            Spacer()
-            VStack(spacing: 22) {
-                Text(copy.title)
-                    .font(settings.titleFont.font(72)).foregroundStyle(Theme.ink)
-                    .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center)
-                Text(copy.subtitle)
-                    .font(settings.subtitleFont.font(30)).foregroundStyle(Theme.ink(0.8))
-                    .multilineTextAlignment(.center).lineLimit(3)
-                Rectangle().fill(Theme.ink(0.25)).frame(width: 400, height: 1).padding(.vertical, 22)
-                timerText()
-            }
-            .frame(maxWidth: 1100).padding(.horizontal, 60)
-            Spacer()
-            controls.padding(.bottom, 60)
-        }
-    }
-
     /// Editorial: oversized left-aligned title bottom-left, countdown and clock top-right, controls under the copy.
     private var editorial: some View {
         ZStack {
@@ -247,36 +226,6 @@ struct BreakView: View {
                 controls.padding(.top, 14)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading).padding(.horizontal, 90).padding(.bottom, 80)
-        }
-    }
-
-    /// Sun: copy on top, the countdown inside a soft glowing circle that gently breathes, controls below.
-    private var sun: some View {
-        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        return VStack(spacing: 0) {
-            if settings.showClock { clockLine.padding(.top, 70) }
-            Spacer()
-            VStack(spacing: 18) {
-                Text(copy.title)
-                    .font(settings.titleFont.font(64)).foregroundStyle(Theme.ink)
-                    .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center)
-                Text(copy.subtitle)
-                    .font(settings.subtitleFont.font(26)).foregroundStyle(Theme.ink(0.75))
-                    .multilineTextAlignment(.center).lineLimit(3)
-            }
-            .frame(maxWidth: 900).padding(.horizontal, 60)
-            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
-                let t = reduce ? 0 : ctx.date.timeIntervalSinceReferenceDate
-                let breathe = 1 + 0.035 * sin(t * 2 * .pi / 6)      // 6s in/out
-                ZStack {
-                    Circle().fill(Color.white.opacity(0.28)).frame(width: 380, height: 380).scaleEffect(breathe * 1.06)
-                    Circle().fill(Color.white.opacity(0.5)).frame(width: 300, height: 300).scaleEffect(breathe)
-                    timerText(72, opacity: 1)
-                }
-            }
-            .padding(.top, 34)
-            Spacer()
-            controls.padding(.bottom, 56)
         }
     }
 
@@ -399,8 +348,6 @@ struct BreakView: View {
             case .breathe: breathe
             case .forest: forest
             case .editorial: editorial
-            case .sun: sun
-            case .centered: centered
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case centered, editorial, sun, forest, breathe, night, ocean }
+enum BreakLayout { case editorial, forest, breathe, night, ocean }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -35,16 +35,6 @@ extension Style {
     static func hex(_ v: UInt32, _ a: Double = 1) -> Color {
         Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255, opacity: a)
     }
-
-    /// Warm, friendly and sunny: orange accent, cream surfaces, very round shapes, a sun-circle countdown. Inspired by meditation apps; no third-party assets.
-    static let headspace = Style(
-        name: "Headspace", dark: false, ink: hex(0x2A2540), veil: hex(0xFFF1DC, 0.5), sidebar: hex(0xFFFFFF, 0.32),
-        cardOpacity: 0.06, strokeOpacity: 0.08, hairlineOpacity: 0.09, accent: hex(0xF47D31),
-        glowA: hex(0xFFD166, 0.75), glowB: hex(0xFF9E5E, 0.5),
-        backdrop: (hex(0xFFA24D), [hex(0xFFD27A), hex(0xFF7F32), hex(0xFFE9C2), hex(0xFFB86B)]),
-        tileOverride: [0xFFB347, 0xF47D31], cardRadius: 26, controlRadius: 16, displayDesign: .rounded, material: .popover,
-        cardSolid: hex(0xFFF8EC, 0.96), breakLayout: .sun, glyph: [0xFFC15E, 0xF47D31], glyphInk: 0x4A2308,
-        cardFill: Color.white.opacity(0.62), onAccent: hex(0x2A2540))
 
     /// Deep leafy green glass, mint and cream, a flat tree that grows through the break. Inspired by focus-and-grow apps; no third-party assets.
     static let forest = Style(
@@ -86,15 +76,6 @@ extension Style {
         cardSolid: hex(0x08455F, 0.94), breakLayout: .ocean, glyph: [0x9AF0E6, 0x2CC6C8], glyphInk: 0x02323F,
         onAccent: hex(0x03283A))
 
-    /// Light frosted paper over soft pastel light, dark ink, serif headings.
-    static let paper = Style(
-        name: "Paper glass", dark: false, ink: hex(0x1C1B22), veil: hex(0xFFF7EE, 0.45), sidebar: hex(0xFFFFFF, 0.28),
-        cardOpacity: 0.07, strokeOpacity: 0.1, hairlineOpacity: 0.1, accent: hex(0xE2572B),
-        glowA: hex(0xFFC9A8, 0.7), glowB: hex(0xCDB8FF, 0.55),
-        backdrop: (hex(0xF4EEE6), [hex(0xFFC7A1), hex(0xD9C7FF), hex(0xBFE3D4), hex(0xFFE2B8)]),
-        tileOverride: nil, cardRadius: 22, controlRadius: 12, displayDesign: .serif, material: .popover,
-        cardSolid: hex(0xFFF9F2, 0.92), breakLayout: .centered, glyph: [0xFF9E7A, 0xFFC857], glyphInk: 0x5A2410)
-
     /// Near-monochrome dark blur, one lime accent, square corners, serif display with mono details.
     static let mono = Style(
         name: "Mono focus", dark: true, ink: hex(0xF2F2EE), veil: hex(0x08090B, 0.5), sidebar: hex(0x000000, 0.3),
@@ -105,13 +86,13 @@ extension Style {
         cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
         onAccent: hex(0x10130A))
 
-    static let all = [headspace, forest, ocean, night, medito, paper, mono]
-    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? headspace }
+    static let all = [forest, ocean, night, medito, mono]
+    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? forest }
 }
 
 /// Current look. Set once at launch (or per render in the snapshot harness).
 enum Theme {
-    static var style = Style.headspace
+    static var style = Style.forest
 
     static func hex(_ v: UInt32, _ a: Double = 1) -> Color { Style.hex(v, a) }
 
