@@ -52,7 +52,7 @@ enum Pane: String, CaseIterable, Identifiable {
         ("Focus & Wellbeing", [.screenBreaks, .breakScreen, .smartPause, .wellness, .stats]),
         ("Behavior & Feedback", [.alerts, .sounds, .shortcuts]),
         ("Integrations", [.automation]),
-        ("LookAway", [.about]),
+        ("OpenLookAway", [.about]),
     ]
 }
 

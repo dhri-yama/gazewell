@@ -580,7 +580,7 @@ struct AboutPane: View {
         VStack(spacing: 10) {
             Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(Theme.onAccent)
                 .frame(width: 84, height: 84).background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 20))
-            Text("LookAway").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
+            Text("OpenLookAway").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
             Text("Version 0.2").font(.system(size: 13)).foregroundStyle(Theme.textDim)
             Text("A personal clone of the LookAway break reminder for macOS. Not affiliated with LookAway.")
                 .font(.system(size: 13)).foregroundStyle(Theme.textDim).multilineTextAlignment(.center).frame(maxWidth: 360)

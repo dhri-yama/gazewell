@@ -40,7 +40,7 @@ enum Snapshots {
         shot("headsup", HeadsUpCard(scheduler: hu, canSnooze: true).padding(20).background(Color.gray), CGSize(width: 500, height: 190))
         shot("pill", CursorPill(scheduler: hu).padding(20).background(Color.gray), CGSize(width: 260, height: 60))
         for (i, n) in Nudge.defaults.enumerated() {
-            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 2.2, 1.6][i])).background(Color.gray), n.id == "water" ? CGSize(width: 1440, height: 900) : CGSize(width: 760, height: 560))
+            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.0, 2.2, 1.6][i])).background(Color.gray), CGSize(width: 1440, height: 900))
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
         // A break 14s in, so tree-growth layouts show a mid-growth state.
@@ -60,8 +60,10 @@ enum Snapshots {
                  .padding(20).background(Theme.style.dark ? Color(white: 0.25) : Color(white: 0.85)), CGSize(width: 500, height: 190))
             shot("cmp-\(slug)-menu", MenuPopover(scheduler: hu, store: store, stats: stats)
                  .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 360, height: 420))
-            shot("cmp-\(slug)-nudge", NudgeView(nudge: Nudge.defaults[0], font: s.subtitleFont, start: Date().addingTimeInterval(-1.2))
-                 .background(Theme.style.dark ? Color(white: 0.2) : Color(white: 0.9)), CGSize(width: 760, height: 560))
+            for (j, n) in Nudge.defaults.enumerated() {
+                shot("cmp-\(slug)-nudge-\(n.id)", NudgeView(nudge: n, font: s.subtitleFont, start: Date().addingTimeInterval(-[1.2, 1.0, 2.2, 1.6][j]))
+                     .background(Color(white: 0.2)), CGSize(width: 1440, height: 900))
+            }
             let nav3 = SettingsNav(); nav3.pane = .general
             shot("cmp-\(slug)-general", SettingsView(store: store, stats: stats, nav: nav3, height: 760)
                  .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 760))
