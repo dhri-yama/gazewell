@@ -114,6 +114,103 @@ private struct WaterOrb: View {
     }
 }
 
+private func hash01(_ i: Int, _ salt: Double) -> Double {
+    let x = sin(Double(i) * 91.3458 + salt * 47.853) * 43758.5453
+    return x - floor(x)
+}
+
+/// Cairn: stones appear one by one, largest at the bottom, as `progress` goes 0...1.
+private struct Cairn: View {
+    var progress: Double
+    private let widths: [Double] = [210, 176, 144, 114, 88, 62]
+    private let heights: [Double] = [66, 58, 50, 44, 38, 32]
+    private let shifts: [Double] = [0, 12, -10, 7, -5, 2]
+    private let tones: [UInt32] = [0x7A6A5A, 0x8B7765, 0x9A8570, 0x6F5E4F, 0x8C7B68, 0xA39078]
+
+    var body: some View {
+        Canvas { ctx, size in
+            let cx = size.width / 2, ground = size.height - 36
+            ctx.fill(Path(ellipseIn: CGRect(x: cx - 170, y: ground - 8, width: 340, height: 34)), with: .color(.black.opacity(0.28)))
+            ctx.fill(Path(roundedRect: CGRect(x: cx - 160, y: ground - 4, width: 320, height: 16), cornerRadius: 8), with: .color(Theme.hex(0x4A3322)))
+            var y = ground
+            for i in 0..<6 {
+                let local = min(max(progress * 6 - Double(i), 0), 1)
+                let h = heights[i], w = widths[i]
+                y -= h * 0.82
+                guard local > 0 else { continue }
+                let e = 1 - pow(1 - local, 3)
+                let rect = CGRect(x: cx + shifts[i] - w / 2, y: y - h / 2 - (1 - e) * 60, width: w, height: h)
+                let tone = Theme.hex(tones[i])
+                ctx.opacity = e
+                ctx.fill(Path(ellipseIn: rect), with: .linearGradient(Gradient(colors: [tone, Theme.hex(tones[i] &- 0x1C1C1C)]),
+                                                                        startPoint: CGPoint(x: rect.midX, y: rect.minY), endPoint: CGPoint(x: rect.midX, y: rect.maxY)))
+                ctx.fill(Path(ellipseIn: CGRect(x: rect.minX + w * 0.16, y: rect.minY + h * 0.14, width: w * 0.34, height: h * 0.22)), with: .color(.white.opacity(0.18)))
+                ctx.opacity = 1
+            }
+        }
+        .frame(width: 360, height: 400)
+        .accessibilityHidden(true)
+    }
+}
+
+/// Dandelion: its seeds detach one by one and drift away on the wind as `progress` goes 0...1; wind streaks flow across the screen.
+private struct Dandelion: View {
+    var elapsed: Double
+    var length: Double
+    var time: Double
+
+    var body: some View {
+        Canvas { ctx, size in
+            let ink = Theme.ink
+            let head = CGPoint(x: size.width * 0.34, y: 150)
+            // stem
+            var stem = Path()
+            stem.move(to: CGPoint(x: head.x, y: head.y + 6))
+            stem.addQuadCurve(to: CGPoint(x: head.x - 24, y: size.height), control: CGPoint(x: head.x + 40, y: size.height * 0.6))
+            ctx.stroke(stem, with: .color(ink.opacity(0.45)), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+            ctx.fill(Path(ellipseIn: CGRect(x: head.x - 7, y: head.y - 7, width: 14, height: 14)), with: .color(ink.opacity(0.55)))
+            let sway = sin(time * 1.4) * 3
+            let n = 64
+            for i in 0..<n {
+                let a = Double(i) / Double(n) * 2 * .pi + hash01(i, 2) * 0.12
+                let reach = 50 + 8 * hash01(i, 3)
+                let base = CGPoint(x: head.x + cos(a) * reach + sway * 0.3, y: head.y + sin(a) * reach)
+                let release = 0.1 + 0.82 * hash01(i, 1)
+                let since = elapsed - release * length                               // seconds since this seed let go
+                func tuft(_ p: CGPoint, _ angle: Double, _ alpha: Double) {
+                    var t = Path()
+                    for k in 0..<7 {
+                        let d = angle + (Double(k) - 3) * 0.42
+                        t.move(to: p); t.addLine(to: CGPoint(x: p.x + cos(d) * 10, y: p.y + sin(d) * 10))
+                    }
+                    ctx.stroke(t, with: .color(ink.opacity(alpha)), style: StrokeStyle(lineWidth: 1, lineCap: .round))
+                    ctx.fill(Path(ellipseIn: CGRect(x: p.x - 1.5, y: p.y - 1.5, width: 3, height: 3)), with: .color(ink.opacity(alpha)))
+                }
+                if since <= 0 {
+                    var spoke = Path(); spoke.move(to: head); spoke.addLine(to: base)
+                    ctx.stroke(spoke, with: .color(ink.opacity(0.3)), lineWidth: 1)
+                    tuft(base, a, 0.85)
+                } else {
+                    let v = 70 + 90 * hash01(i, 4)
+                    let p = CGPoint(x: base.x + since * v, y: base.y - since * 6 + sin(since * 1.7 + Double(i)) * 16 + since * since * 1.1)
+                    tuft(p, a + since * 0.6, max(0, 0.85 - since / 7))
+                }
+            }
+            // wind streaks
+            for k in 0..<7 {
+                var w = Path()
+                let y0 = size.height * (0.1 + 0.13 * Double(k))
+                var x = 0.0
+                w.move(to: CGPoint(x: 0, y: y0))
+                while x <= size.width { x += 10; w.addLine(to: CGPoint(x: x, y: y0 + sin(x / size.width * 5 + Double(k)) * 14 + sin(x / 90 + time * 0.8 + Double(k)) * 4)) }
+                ctx.stroke(w, with: .color(ink.opacity(0.14)), style: StrokeStyle(lineWidth: 2, lineCap: .round, dash: [90, 70], dashPhase: -time * 90 * (0.7 + 0.15 * Double(k))))
+            }
+        }
+        .frame(width: 760, height: 430)
+        .accessibilityHidden(true)
+    }
+}
+
 private struct Pill: View {
     var title: String
     var symbol: String?
@@ -154,6 +251,7 @@ struct BreakView: View {
     var image: NSImage?
     var onSkip: () -> Void
     var onLock: () -> Void
+    var appeared = Date()      // for scenes that animate continuously across the break
 
     private static let time: DateFormatter = {
         let f = DateFormatter(); f.dateFormat = "HH:mm"; return f
@@ -340,9 +438,57 @@ struct BreakView: View {
         }
     }
 
+    /// Earth: a cairn of stones stacks up through the break.
+    private var earth: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 60) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(58)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.78))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 12)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                let exact = reduce ? Double(scheduler.elapsed) : ctx.date.timeIntervalSince(appeared)
+                Cairn(progress: min(1, exact / Double(max(1, scheduler.breakLength))))
+            }
+            .padding(.top, 10)
+            timerText(52, opacity: 0.9)
+            Spacer()
+            controls.padding(.bottom, 52)
+        }
+    }
+
+    /// Air: a dandelion loses its seeds to the wind over the break.
+    private var air: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 60) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(58)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.75))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 12)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                let exact = reduce ? Double(scheduler.elapsed) : ctx.date.timeIntervalSince(appeared)
+                Dandelion(elapsed: exact, length: Double(max(1, scheduler.breakLength)), time: reduce ? 0 : ctx.date.timeIntervalSinceReferenceDate)
+            }
+            .padding(.top, 6)
+            timerText(52, opacity: 0.85)
+            Spacer()
+            controls.padding(.bottom, 52)
+        }
+    }
+
     var body: some View {
         Group {
             switch Theme.style.breakLayout {
+            case .earth: earth
+            case .air: air
             case .night: night
             case .ocean: ocean
             case .breathe: breathe

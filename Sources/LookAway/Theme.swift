@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case editorial, forest, breathe, night, ocean }
+enum BreakLayout { case editorial, forest, breathe, night, ocean, earth, air }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -76,6 +76,26 @@ extension Style {
         cardSolid: hex(0x08455F, 0.94), breakLayout: .ocean, glyph: [0x9AF0E6, 0x2CC6C8], glyphInk: 0x02323F,
         onAccent: hex(0x03283A))
 
+    /// Warm clay, soil and sand; a cairn of stones stacks up through the break.
+    static let earth = Style(
+        name: "Earth", dark: true, ink: hex(0xF6EEE2), veil: hex(0x1C120B, 0.5), sidebar: hex(0x140C07, 0.4),
+        cardOpacity: 0.08, strokeOpacity: 0.13, hairlineOpacity: 0.11, accent: hex(0xE29A63),
+        glowA: hex(0xA0522D, 0.5), glowB: hex(0xD9B26F, 0.22),
+        backdrop: (hex(0x1B120C), [hex(0x6B3F24), hex(0x8C5A35), hex(0x3E2616), hex(0xB07A45)]),
+        tileOverride: [0xD58A55, 0x9A5530], cardRadius: 18, controlRadius: 12, displayDesign: .serif, material: .hudWindow,
+        cardSolid: hex(0x2A1B12, 0.94), breakLayout: .earth, glyph: [0xF0B88A, 0xC67A45], glyphInk: 0x2A140A,
+        onAccent: hex(0x2A140A))
+
+    /// Light, airy sky blue and white; a dandelion's seeds blow away on the wind as the break passes.
+    static let air = Style(
+        name: "Air", dark: false, ink: hex(0x1E2B3A), veil: hex(0xE8F4FF, 0.5), sidebar: hex(0xFFFFFF, 0.3),
+        cardOpacity: 0.06, strokeOpacity: 0.09, hairlineOpacity: 0.09, accent: hex(0x1F7AE0),
+        glowA: hex(0xBFE3FF, 0.75), glowB: hex(0xFFFFFF, 0.55),
+        backdrop: (hex(0xCFE8FA), [hex(0xA9D6F5), hex(0xE8F5FF), hex(0x8FC4EE), hex(0xFFFFFF)]),
+        tileOverride: [0x6FB7F5, 0x2D8CFF], cardRadius: 24, controlRadius: 14, displayDesign: .rounded, material: .popover,
+        cardSolid: hex(0xF4FAFF, 0.94), breakLayout: .air, glyph: [0xBFE3FF, 0x6FB7F5], glyphInk: 0x0B2B4A,
+        cardFill: Color.white.opacity(0.55), onAccent: .white)
+
     /// Near-monochrome dark blur, one lime accent, square corners, serif display with mono details.
     static let mono = Style(
         name: "Mono focus", dark: true, ink: hex(0xF2F2EE), veil: hex(0x08090B, 0.5), sidebar: hex(0x000000, 0.3),
@@ -86,7 +106,7 @@ extension Style {
         cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
         onAccent: hex(0x10130A))
 
-    static let all = [forest, ocean, night, medito, mono]
+    static let all = [forest, earth, ocean, air, night, medito, mono]
     static func named(_ n: String) -> Style { all.first { $0.name == n } ?? forest }
 }
 

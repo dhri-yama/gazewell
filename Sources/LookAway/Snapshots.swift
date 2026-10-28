@@ -47,7 +47,7 @@ enum Snapshots {
         var clockNow = Date()
         let grown = BreakScheduler(now: { clockNow }); grown.startBreak(duration: 20); clockNow += 14; grown.tick()
         // Direction comparison: every surface once per style.
-        let presetFor: [String: Int] = ["Forest": 4, "Night sky": 0, "Ocean": 4, "Medito": 0, "Mono focus": 3]
+        let presetFor: [String: Int] = ["Forest": 4, "Earth": 0, "Air": 4, "Night sky": 0, "Ocean": 4, "Medito": 0, "Mono focus": 3]
         for style in Style.all {
             Theme.style = style
             let slug = style.name.lowercased().replacingOccurrences(of: " ", with: "-")
@@ -55,7 +55,7 @@ enum Snapshots {
             s.titleFont = pre.title; s.subtitleFont = pre.subtitle; s.timerFont = pre.timer; s.theme = .olive
             shot("cmp-\(slug)-break", BreakView(scheduler: grown, settings: s,
                  copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
-                 image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
+                 image: nil, onSkip: {}, onLock: {}, appeared: Date().addingTimeInterval(-14)), CGSize(width: 1440, height: 900))
             shot("cmp-\(slug)-headsup", HeadsUpCard(scheduler: hu, canSnooze: true, timerFont: s.timerFont, textFont: s.subtitleFont)
                  .padding(20).background(Theme.style.dark ? Color(white: 0.25) : Color(white: 0.85)), CGSize(width: 500, height: 190))
             shot("cmp-\(slug)-menu", MenuPopover(scheduler: hu, store: store, stats: stats)
