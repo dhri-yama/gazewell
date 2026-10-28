@@ -5,7 +5,7 @@ import LookAwayCore
 /// Hover state for a row. An object rather than @State so it builds on toolchains without SwiftUI's macro plugin.
 private final class HoverModel: ObservableObject { @Published var on = false }
 
-private let glassStroke = Color.white.opacity(0.12)
+private let glassStroke = Theme.ink(0.12)
 
 private struct RowLabel: View {
     var title: String
@@ -16,15 +16,15 @@ private struct RowLabel: View {
 
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: symbol).font(.system(size: 15, weight: .medium)).frame(width: 22).foregroundStyle(.white.opacity(0.65))
+            Image(systemName: symbol).font(.system(size: 15, weight: .medium)).frame(width: 22).foregroundStyle(Theme.ink(0.65))
             Text(title)
             Spacer()
-            if let trailing { Text(trailing).foregroundStyle(.white.opacity(0.45)) }
-            if chevron { Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(.white.opacity(0.45)) }
+            if let trailing { Text(trailing).foregroundStyle(Theme.ink(0.45)) }
+            if chevron { Image(systemName: "chevron.right").font(.system(size: 11, weight: .semibold)).foregroundStyle(Theme.ink(0.45)) }
         }
-        .font(.system(size: 15)).foregroundStyle(.white)
+        .font(.system(size: 15)).foregroundStyle(Theme.ink)
         .padding(.horizontal, 12).frame(height: 40)
-        .background(.white.opacity(hover.on ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 10))
+        .background(Theme.ink(hover.on ? 0.1 : 0), in: RoundedRectangle(cornerRadius: 10))
         .contentShape(Rectangle())
         .onHover { hover.on = $0 }
     }
@@ -75,29 +75,29 @@ struct MenuPopover: View {
         let streak = stats.stats.streak()
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 6) {
-                Text(heading).font(.system(size: 14, weight: .medium)).foregroundStyle(.white.opacity(0.65))
+                Text(heading).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.ink(0.65))
                 if off {
-                    Text("Off").font(.system(size: 52, weight: .bold)).foregroundStyle(.white.opacity(0.5))
+                    Text("Off").font(.system(size: 52, weight: .bold)).foregroundStyle(Theme.ink(0.5))
                 } else if scheduler.hasUpcoming && !paused {
-                    Text(clock).font(.system(size: 52, weight: .bold)).monospacedDigit().foregroundStyle(.white)
+                    Text(clock).font(Theme.display(52, .bold)).monospacedDigit().foregroundStyle(Theme.ink)
                 } else {
-                    Text(paused ? "Paused" : "—").font(.system(size: 52, weight: .bold)).foregroundStyle(.white.opacity(0.5))
+                    Text(paused ? "Paused" : "—").font(.system(size: 52, weight: .bold)).foregroundStyle(Theme.ink(0.5))
                 }
                 GeometryReader { g in
                     ZStack(alignment: .leading) {
-                        Capsule().fill(.white.opacity(0.14))
-                        Capsule().fill(.white.opacity(0.85)).frame(width: max(8, g.size.width * progress))
+                        Capsule().fill(Theme.ink(0.14))
+                        Capsule().fill(Theme.ink(0.85)).frame(width: max(8, g.size.width * progress))
                     }
                 }
                 .frame(height: 8).padding(.top, 10)
                 .accessibilityHidden(true)
                 Text("Today · \(today.taken) taken · \(today.skipped) skipped\(streak > 1 ? " · \(streak)-day streak" : "")")
-                    .font(.system(size: 13)).foregroundStyle(.white.opacity(0.55)).padding(.top, 6)
+                    .font(.system(size: 13)).foregroundStyle(Theme.ink(0.55)).padding(.top, 6)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 22).padding(.vertical, 22)
 
-            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
+            Rectangle().fill(Theme.ink(0.1)).frame(height: 1)
             VStack(spacing: 2) {
                 if off {
                     RowButton(title: "Turn LookAway on", symbol: "power", shortcut: "⌃⌥P") { store.settings.enabled = true }
@@ -119,7 +119,7 @@ struct MenuPopover: View {
             }
             .padding(10)
 
-            Rectangle().fill(.white.opacity(0.1)).frame(height: 1)
+            Rectangle().fill(Theme.ink(0.1)).frame(height: 1)
             VStack(spacing: 2) {
                 RowButton(title: "Settings…", symbol: "gearshape", shortcut: "⌘,") { dismissPopover(); SettingsWindow.show(store: store, stats: stats) }
                     .keyboardShortcut(",")
@@ -133,11 +133,10 @@ struct MenuPopover: View {
             // Same family as the break screen: a warm olive glow over a blurred, dark glass.
             ZStack {
                 Rectangle().fill(.regularMaterial)
-                Color.black.opacity(0.28)
-                RadialGradient(colors: [Theme.hex(0x8C8446, 0.55), .clear], center: .topLeading, startRadius: 0, endRadius: 260)
-                RadialGradient(colors: [Theme.hex(0x5A5A32, 0.35), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 220)
+                Theme.glow
             }
         }
-        .environment(\.colorScheme, .dark)
+        .environment(\.colorScheme, Theme.scheme)
+        .id(store.settings.appStyle)
     }
 }

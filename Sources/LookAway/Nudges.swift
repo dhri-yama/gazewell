@@ -10,8 +10,8 @@ struct NudgeView: View {
     var start = Date()
     static let life = 5.0
     private let k: CGFloat = 2        // glyph scale: big enough to read across a full-screen blur
-    private static let plum = Theme.hex(0x4A1230)
-    private static let disc = LinearGradient(colors: [Theme.hex(0xE85AB8), Theme.hex(0xF59A55)], startPoint: .topLeading, endPoint: .bottomTrailing)
+    private var plum: Color { Theme.hex(Theme.style.glyphInk) }
+    private var disc: LinearGradient { LinearGradient(colors: Theme.style.glyph.map { Theme.hex($0) }, startPoint: .topLeading, endPoint: .bottomTrailing) }
     private let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
 
     var body: some View {
@@ -21,9 +21,9 @@ struct NudgeView: View {
             let eased = 1 - pow(1 - enter, 3)
             VStack(spacing: 14 * k) {
                 glyph(t)
-                Text(nudge.message).font(font.font(15 * k * 0.85)).foregroundStyle(.white.opacity(0.92))
+                Text(nudge.message).font(font.font(15 * k * 0.85)).foregroundStyle(Theme.ink(0.92))
                     .multilineTextAlignment(.center).frame(maxWidth: 620)
-                    .shadow(color: .black.opacity(0.5), radius: 4)
+                    .shadow(color: .black.opacity(Theme.style.dark ? 0.5 : 0.12), radius: 4)
             }
             .padding(24)
             .scaleEffect(0.8 + 0.2 * eased)
@@ -45,10 +45,10 @@ struct NudgeView: View {
     private func posture(_ t: Double) -> some View {
         let p = (1 - cos(2 * .pi * t / 2.4)) / 2          // 0 at the bottom, 1 at the top
         return ZStack {
-            Capsule().fill(Theme.hex(0x2A1326, 0.82)).overlay(Capsule().stroke(.white.opacity(0.1), lineWidth: 1))
+            Capsule().fill(Theme.style.cardSolid).overlay(Capsule().stroke(Theme.ink(0.1), lineWidth: 1))
                 .frame(width: 66 * k, height: 134 * k)
-            Circle().fill(Self.disc).frame(width: 54 * k, height: 54 * k)
-                .overlay(Image(systemName: "arrow.up").font(.system(size: 22 * k, weight: .black)).foregroundStyle(Self.plum))
+            Circle().fill(disc).frame(width: 54 * k, height: 54 * k)
+                .overlay(Image(systemName: "arrow.up").font(.system(size: 22 * k, weight: .black)).foregroundStyle(plum))
                 .offset(y: (32 - 64 * p) * k)
         }
     }
@@ -58,10 +58,10 @@ struct NudgeView: View {
         let c = (t / 1.6).truncatingRemainder(dividingBy: 1)
         let open = c < 0.78 ? 1 : (c < 0.88 ? 1 - (c - 0.78) / 0.1 : (c - 0.88) / 0.12)
         return ZStack {
-            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
-            Circle().fill(Self.disc).frame(width: 74 * k, height: 74 * k)
+            Circle().fill(Theme.style.cardSolid).overlay(Circle().stroke(Theme.ink(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
+            Circle().fill(disc).frame(width: 74 * k, height: 74 * k)
             HStack(spacing: 14 * k) {
-                ForEach(0..<2, id: \.self) { _ in Capsule().fill(Self.plum).frame(width: 14 * k, height: max(3 * k, 13 * k * open)) }
+                ForEach(0..<2, id: \.self) { _ in Capsule().fill(plum).frame(width: 14 * k, height: max(3 * k, 13 * k * open)) }
             }
             .offset(y: 2 * k)
         }
@@ -70,9 +70,9 @@ struct NudgeView: View {
     /// Water and stretch: the symbol breathes inside the same disc.
     private func pulse(_ t: Double) -> some View {
         ZStack {
-            Circle().fill(Theme.hex(0x2A1326, 0.82)).overlay(Circle().stroke(.white.opacity(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
-            Circle().fill(Self.disc).frame(width: 74 * k, height: 74 * k)
-            Image(systemName: nudge.symbol).font(.system(size: 30 * k, weight: .bold)).foregroundStyle(Self.plum)
+            Circle().fill(Theme.style.cardSolid).overlay(Circle().stroke(Theme.ink(0.1), lineWidth: 1)).frame(width: 96 * k, height: 96 * k)
+            Circle().fill(disc).frame(width: 74 * k, height: 74 * k)
+            Image(systemName: nudge.symbol).font(.system(size: 30 * k, weight: .bold)).foregroundStyle(plum)
                 .scaleEffect(1 + 0.12 * sin(2 * .pi * t / 1.6))
         }
     }
@@ -108,7 +108,7 @@ final class Nudges {
     /// Blurs every display and plays the glyph on each, then fades out.
     func show(_ n: Nudge) {
         close()
-        let tint = Color.black.opacity(0.3)
+        let tint = Theme.style.veil
         windows = NSScreen.screens.map { screen in
             let w = NSWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
             w.level = .screenSaver
@@ -119,7 +119,7 @@ final class Nudges {
             w.isReleasedWhenClosed = false
             w.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             let blur = NSVisualEffectView(frame: NSRect(origin: .zero, size: screen.frame.size))
-            blur.material = .hudWindow
+            blur.material = Theme.style.material
             blur.blendingMode = .behindWindow
             blur.state = .active
             let host = NSHostingView(rootView: ZStack { tint; NudgeView(nudge: n, font: store.settings.subtitleFont) })

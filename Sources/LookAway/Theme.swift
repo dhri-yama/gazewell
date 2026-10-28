@@ -1,34 +1,111 @@
 import SwiftUI
 import AppKit
 
-/// Design tokens from docs/design-direction.md (revision 2: match real LookAway).
-enum Theme {
+enum BreakLayout { case centered, editorial }
+
+/// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
+struct Style {
+    var name: String
+    var dark: Bool
+    var ink: Color                    // text, icons and translucent fills (white on dark styles, near-black on light)
+    var veil: Color                   // tint over the blurred window
+    var sidebar: Color
+    var cardOpacity: Double           // card fill = ink at this opacity
+    var strokeOpacity: Double
+    var hairlineOpacity: Double
+    var accent: Color
+    var glowA: Color
+    var glowB: Color
+    var backdrop: (base: Color, blobs: [Color])   // default break-screen backdrop
+    var tileOverride: [UInt32]?       // monochrome styles repaint every icon tile with this gradient
+    var cardRadius: CGFloat
+    var controlRadius: CGFloat
+    var displayDesign: Font.Design    // headings and big numbers
+    var material: NSVisualEffectView.Material
+    var cardSolid: Color              // heads-up card and reminder container
+    var breakLayout: BreakLayout
+    var glyph: [UInt32]               // reminder glyph disc gradient
+    var glyphInk: UInt32              // arrow / eyes drawn on the disc
+}
+
+extension Style {
     static func hex(_ v: UInt32, _ a: Double = 1) -> Color {
         Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255, opacity: a)
     }
 
-    // Settings window
-    // Glass: the window is a blurred backdrop; surfaces are translucent whites/blacks over it.
-    static let sidebarBg = Color.black.opacity(0.22)
-    static let card = Color.white.opacity(0.07)
-    static let cardStroke = Color.white.opacity(0.1)
-    static let hairline = Color.white.opacity(0.1)
+    /// Dark frosted glass, vivid violet-to-coral light, big rounded shapes.
+    static let aurora = Style(
+        name: "Aurora", dark: true, ink: .white, veil: hex(0x0B0820, 0.42), sidebar: hex(0x0B0820, 0.28),
+        cardOpacity: 0.09, strokeOpacity: 0.16, hairlineOpacity: 0.12, accent: hex(0xFF6F61),
+        glowA: hex(0x7C4DFF, 0.55), glowB: hex(0xFF7A59, 0.4),
+        backdrop: (hex(0x0E0B24), [hex(0x6B3FD8), hex(0xD8459A), hex(0xFF7A59), hex(0x2A2A8F)]),
+        tileOverride: nil, cardRadius: 20, controlRadius: 11, displayDesign: .rounded, material: .hudWindow,
+        cardSolid: hex(0x1B1236, 0.9), breakLayout: .centered, glyph: [0xB06BFF, 0xFF7A59], glyphInk: 0x2A0F4A)
 
-    /// Dark tint plus the olive glow shared with the break screen and menu popover.
+    /// Light frosted paper over soft pastel light, dark ink, serif headings.
+    static let paper = Style(
+        name: "Paper glass", dark: false, ink: hex(0x1C1B22), veil: hex(0xFFF7EE, 0.45), sidebar: hex(0xFFFFFF, 0.28),
+        cardOpacity: 0.07, strokeOpacity: 0.1, hairlineOpacity: 0.1, accent: hex(0xE2572B),
+        glowA: hex(0xFFC9A8, 0.7), glowB: hex(0xCDB8FF, 0.55),
+        backdrop: (hex(0xF4EEE6), [hex(0xFFC7A1), hex(0xD9C7FF), hex(0xBFE3D4), hex(0xFFE2B8)]),
+        tileOverride: nil, cardRadius: 22, controlRadius: 12, displayDesign: .serif, material: .popover,
+        cardSolid: hex(0xFFF9F2, 0.92), breakLayout: .centered, glyph: [0xFF9E7A, 0xFFC857], glyphInk: 0x5A2410)
+
+    /// Near-monochrome dark blur, one lime accent, square corners, serif display with mono details.
+    static let mono = Style(
+        name: "Mono focus", dark: true, ink: hex(0xF2F2EE), veil: hex(0x08090B, 0.5), sidebar: hex(0x000000, 0.3),
+        cardOpacity: 0.05, strokeOpacity: 0.1, hairlineOpacity: 0.09, accent: hex(0xC8F560),
+        glowA: hex(0x39414F, 0.55), glowB: hex(0x20262E, 0.5),
+        backdrop: (hex(0x0B0C0E), [hex(0x2B3340), hex(0x1F242C), hex(0x3A4250), hex(0x161A20)]),
+        tileOverride: [0x4A4F58, 0x2C3038], cardRadius: 8, controlRadius: 6, displayDesign: .serif, material: .hudWindow,
+        cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A)
+
+    static let all = [aurora, paper, mono]
+    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? aurora }
+}
+
+/// Current look. Set once at launch (or per render in the snapshot harness).
+enum Theme {
+    static var style = Style.aurora
+
+    static func hex(_ v: UInt32, _ a: Double = 1) -> Color { Style.hex(v, a) }
+
+    static var ink: Color { style.ink }
+    static func ink(_ opacity: Double) -> Color { style.ink.opacity(opacity) }
+    /// Text on accent-coloured or gradient surfaces, which is white in every style.
+    static let onAccent = Color.white
+    static var textDim: Color { ink(0.6) }
+    static var accent: Color { style.accent }
+    /// Foreground for text that sits on the accent colour (lime needs dark text, the rest white).
+    static var onAccentText: Color { style.dark && style.accent == Style.mono.accent ? hex(0x10130A) : .white }
+
+    static var sidebarBg: Color { style.sidebar }
+    static var card: Color { ink(style.cardOpacity) }
+    static var cardStroke: Color { ink(style.strokeOpacity) }
+    static var hairline: Color { ink(style.hairlineOpacity) }
+    static var cardRadius: CGFloat { style.cardRadius }
+    static var controlRadius: CGFloat { style.controlRadius }
+    static var scheme: ColorScheme { style.dark ? .dark : .light }
+    static var appearance: NSAppearance? { NSAppearance(named: style.dark ? .darkAqua : .aqua) }
+
+    /// Display face for headings and big numbers.
+    static func display(_ size: CGFloat, _ weight: Font.Weight = .semibold) -> Font {
+        .system(size: size, weight: weight, design: style.displayDesign)
+    }
+
+    /// Tint plus two soft glows over the blurred window, shared by settings, menu and reminders.
     static var glow: some View {
         ZStack {
-            Color.black.opacity(0.3)
-            RadialGradient(colors: [hex(0x8C8446, 0.5), .clear], center: .topLeading, startRadius: 0, endRadius: 620)
-            RadialGradient(colors: [hex(0x5A5A32, 0.35), .clear], center: .bottomTrailing, startRadius: 0, endRadius: 560)
+            style.veil
+            RadialGradient(colors: [style.glowA, .clear], center: .topLeading, startRadius: 0, endRadius: 620)
+            RadialGradient(colors: [style.glowB, .clear], center: .bottomTrailing, startRadius: 0, endRadius: 560)
         }
     }
-    static let textDim = Color.white.opacity(0.6)
-    static let accent = hex(0xFF6B2C)
 
-    /// Backdrop colours for the break screen: near-black base plus soft blobs.
+    /// Backdrop colours for the break screen. The signature theme follows the style; the other themes are fixed palettes.
     static func palette(_ t: BreakTheme) -> (base: Color, blobs: [Color]) {
         switch t {
-        case .olive, .wallpaper, .image: return (hex(0x121A14), [hex(0x8C8446), hex(0x5A5A32), hex(0x2E3A28), hex(0xA08A3C)])
+        case .olive, .wallpaper, .image: return style.backdrop
         case .dusk: return (hex(0x12122B), [hex(0x4A3F8F), hex(0x8F4F7A), hex(0x2A2A66), hex(0xC47A6A)])
         case .ocean: return (hex(0x0B1A2A), [hex(0x1F5F8B), hex(0x2BA3A3), hex(0x14305A), hex(0x3A7FB0)])
         case .rose: return (hex(0x1E1016), [hex(0xA8456A), hex(0xD98C6A), hex(0x5A2A48), hex(0x8A3A5A)])
@@ -36,9 +113,9 @@ enum Theme {
         }
     }
 
-    /// Gradient tiles behind sidebar icons.
+    /// Gradient tiles behind icons.
     static func tile(_ colors: [UInt32]) -> LinearGradient {
-        LinearGradient(colors: colors.map { hex($0) }, startPoint: .topLeading, endPoint: .bottomTrailing)
+        LinearGradient(colors: (style.tileOverride ?? colors).map { hex($0) }, startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 }
 

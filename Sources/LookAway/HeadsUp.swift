@@ -14,12 +14,12 @@ struct HeadsUpCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 14) {
-                Image(systemName: "timer").font(.system(size: 22, weight: .semibold)).foregroundStyle(.white)
+                Image(systemName: "timer").font(.system(size: 22, weight: .semibold)).foregroundStyle(Theme.onAccent)
                     .frame(width: 52, height: 52)
                     .background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 13))
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(clock).font(timerFont.font(28)).monospacedDigit().foregroundStyle(.white)
-                    Text("Almost time. Your eyes will appreciate this.").font(textFont.font(15)).foregroundStyle(.white.opacity(0.75))
+                    Text(clock).font(timerFont.font(28)).monospacedDigit().foregroundStyle(Theme.ink)
+                    Text("Almost time. Your eyes will appreciate this.").font(textFont.font(15)).foregroundStyle(Theme.ink(0.75))
                 }
             }
             HStack(spacing: 8) {
@@ -27,7 +27,7 @@ struct HeadsUpCard: View {
                     .buttonStyle(CapsuleButton(fill: Theme.accent, bold: true))
                 ForEach([1, 5, 15], id: \.self) { m in
                     Button("+\(m)m") { scheduler.postpone(by: TimeInterval(m * 60)) }
-                        .buttonStyle(CapsuleButton(fill: .white.opacity(0.14), bold: false))
+                        .buttonStyle(CapsuleButton(fill: Theme.ink(0.14), bold: false))
                         .disabled(!canSnooze).opacity(canSnooze ? 1 : 0.4)
                         .help(canSnooze ? "Snooze \(m) minute\(m == 1 ? "" : "s")" : "No snoozes left today")
                 }
@@ -35,8 +35,8 @@ struct HeadsUpCard: View {
         }
         .padding(18)
         .frame(width: 440, alignment: .leading)
-        .background(Theme.hex(0x2B1B17, 0.94), in: RoundedRectangle(cornerRadius: 26))
-        .overlay(RoundedRectangle(cornerRadius: 26).stroke(.white.opacity(0.1), lineWidth: 1))
+        .background(Theme.style.cardSolid, in: RoundedRectangle(cornerRadius: Theme.cardRadius + 6))
+        .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius + 6).stroke(Theme.ink(0.1), lineWidth: 1))
     }
 }
 
@@ -45,7 +45,7 @@ struct CapsuleButton: ButtonStyle {
     var bold: Bool
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 15, weight: bold ? .semibold : .medium)).foregroundStyle(.white)
+            .font(.system(size: 15, weight: bold ? .semibold : .medium)).foregroundStyle(bold ? Theme.onAccentText : Theme.ink)
             .padding(.horizontal, 16).padding(.vertical, 9)
             .background(fill, in: Capsule())
             .opacity(configuration.isPressed ? 0.7 : 1)
@@ -57,14 +57,14 @@ struct CursorPill: View {
     @ObservedObject var scheduler: BreakScheduler
     var body: some View {
         HStack(spacing: 8) {
-            Image(systemName: "leaf.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(.white)
+            Image(systemName: "leaf.fill").font(.system(size: 11, weight: .bold)).foregroundStyle(Theme.onAccent)
                 .frame(width: 22, height: 22)
                 .background(Theme.tile([0xB05CD8, 0xE0609A]), in: RoundedRectangle(cornerRadius: 6))
             Text("\(scheduler.isLongBreak ? "Long" : "Short") break in \(scheduler.secondsLeft)")
-                .font(.system(size: 14, weight: .semibold)).monospacedDigit().foregroundStyle(.white)
+                .font(.system(size: 14, weight: .semibold)).monospacedDigit().foregroundStyle(Theme.ink)
         }
         .padding(.leading, 6).padding(.trailing, 12).padding(.vertical, 5)
-        .background(Theme.hex(0x262A4A, 0.92), in: Capsule())
+        .background(Theme.style.cardSolid, in: Capsule())
         .accessibilityHidden(true)
     }
 }

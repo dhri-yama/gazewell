@@ -5,10 +5,59 @@ import LookAwayCore
 
 // MARK: General
 
+/// Small preview of one app theme, drawn from that theme's own tokens so it looks right whichever theme is active.
+private struct StyleTile: View {
+    var style: Style
+    var selected: Bool
+    var action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                ZStack(alignment: .topLeading) {
+                    style.backdrop.base
+                    ForEach(0..<3, id: \.self) { i in
+                        Circle().fill(RadialGradient(colors: [style.backdrop.blobs[i].opacity(0.85), .clear], center: .center, startRadius: 0, endRadius: 70))
+                            .frame(width: 140, height: 140)
+                            .offset(x: CGFloat(i) * 60 - 30, y: CGFloat(i % 2) * 30 - 40)
+                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Aa").font(.system(size: 26, weight: .bold, design: style.displayDesign)).foregroundStyle(style.ink)
+                        HStack(spacing: 5) {
+                            RoundedRectangle(cornerRadius: 4).fill(style.accent).frame(width: 30, height: 9)
+                            RoundedRectangle(cornerRadius: 4).fill(style.ink.opacity(0.3)).frame(width: 46, height: 9)
+                        }
+                    }
+                    .padding(14)
+                }
+                .frame(height: 104).clipped()
+                .clipShape(RoundedRectangle(cornerRadius: Theme.cardRadius - 6))
+                .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius - 6).stroke(Theme.accent, lineWidth: selected ? 3 : 0).padding(-3))
+                Text(style.name).font(.system(size: 13, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
+            }
+            .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(PressStyle())
+        .accessibilityLabel("\(style.name) theme")
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+}
+
 struct GeneralPane: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var stats: StatsStore
     var body: some View {
+        Block(title: "Theme") {
+            Card {
+                HStack(alignment: .top, spacing: 14) {
+                    ForEach(Style.all, id: \.name) { st in
+                        StyleTile(style: st, selected: store.settings.appStyle == st.name) { store.settings.appStyle = st.name }
+                    }
+                }
+                .padding(16)
+            }
+            Note("Applies everywhere: this window, the menu, the break screen, the heads-up card and reminders.")
+        }
         Block {
         Card {
             ToggleRow(title: "Enable LookAway", subtitle: "Turn off to stop all breaks, heads-ups and reminders. Your settings are kept.",
@@ -48,19 +97,19 @@ private struct EnforcementTile: View {
                     HStack(spacing: 8) {
                         switch level {
                         case .casual: Image(systemName: "forward")
-                        case .balanced: Circle().trim(from: 0, to: 0.75).stroke(.white, lineWidth: 2).frame(width: 16, height: 16).rotationEffect(.degrees(-90))
+                        case .balanced: Circle().trim(from: 0, to: 0.75).stroke(Theme.ink, lineWidth: 2).frame(width: 16, height: 16).rotationEffect(.degrees(-90))
                         case .hardcore: Image(systemName: "nosign")
                         }
                         Text("Skip Break").font(.system(size: 14, weight: .semibold))
                     }
-                    .foregroundStyle(.white.opacity(level == .hardcore ? 0.55 : 1))
+                    .foregroundStyle(Theme.ink(level == .hardcore ? 0.55 : 1))
                     .padding(.horizontal, 16).padding(.vertical, 9)
-                    .background(.white.opacity(0.2), in: Capsule())
+                    .background(Theme.ink(0.2), in: Capsule())
                 }
                 .frame(height: 84)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.hex(0x1E78FF), lineWidth: selected ? 3 : 0).padding(-3))
-                Text(level.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(.white)
+                .overlay(RoundedRectangle(cornerRadius: 12).stroke(Theme.accent, lineWidth: selected ? 3 : 0).padding(-3))
+                Text(level.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
                 Text(level.detail).font(.system(size: 12)).foregroundStyle(Theme.textDim)
             }
             .frame(maxWidth: .infinity)
@@ -143,8 +192,8 @@ struct ScreenBreaksPane: View {
                             }
                             .buttonStyle(.plain).font(.system(size: 13, weight: .semibold))
                             .frame(width: 28, height: 28)
-                            .background(on ? Theme.accent : Color.white.opacity(0.1), in: Circle())
-                            .foregroundStyle(.white)
+                            .background(on ? Theme.accent : Theme.ink(0.1), in: Circle())
+                            .foregroundStyle(on ? Theme.onAccentText : Theme.ink)
                         }
                     }
                 }
@@ -205,9 +254,9 @@ private struct FontPreview: View {
     var settings: AppSettings
     var body: some View {
         VStack(spacing: 8) {
-            Text("Catch a quick rest").font(settings.titleFont.font(34)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.5)
-            Text("Focus on a distant point until it's time to resume").font(settings.subtitleFont.font(15)).foregroundStyle(.white.opacity(0.8))
-            Text("00:20").font(settings.timerFont.font(26)).monospacedDigit().foregroundStyle(.white.opacity(0.55)).padding(.top, 4)
+            Text("Catch a quick rest").font(settings.titleFont.font(34)).foregroundStyle(Theme.ink).lineLimit(1).minimumScaleFactor(0.5)
+            Text("Focus on a distant point until it's time to resume").font(settings.subtitleFont.font(15)).foregroundStyle(Theme.ink(0.8))
+            Text("00:20").font(settings.timerFont.font(26)).monospacedDigit().foregroundStyle(Theme.ink(0.55)).padding(.top, 4)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 22)
         .background(Backdrop(theme: settings.theme, image: nil, reduceMotion: true))
@@ -237,11 +286,11 @@ struct BreakScreenPane: View {
             VStack(spacing: 6) {
                 ZStack {
                     LinearGradient(colors: [p.base] + p.blobs.prefix(3).map { $0.opacity(0.85) } , startPoint: .bottomLeading, endPoint: .topTrailing)
-                    if t == .wallpaper || t == .image { Image(systemName: t == .image ? "photo" : "desktopcomputer").foregroundStyle(.white.opacity(0.8)) }
+                    if t == .wallpaper || t == .image { Image(systemName: t == .image ? "photo" : "desktopcomputer").foregroundStyle(Theme.ink(0.8)) }
                 }
                 .frame(height: 64).clipShape(RoundedRectangle(cornerRadius: 10))
-                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.hex(0x1E78FF), lineWidth: selected ? 3 : 0).padding(-3))
-                Text(t.title).font(.system(size: 12, weight: selected ? .semibold : .regular)).foregroundStyle(.white)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(Theme.accent, lineWidth: selected ? 3 : 0).padding(-3))
+                Text(t.title).font(.system(size: 12, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
             }
         }
         .buttonStyle(.plain)
@@ -285,9 +334,9 @@ struct BreakScreenPane: View {
             Card {
             VStack(alignment: .leading, spacing: 8) {
                 TextEditor(text: $store.settings.customMessages)
-                    .scrollContentBackground(.hidden).font(.system(size: 13)).foregroundStyle(.white)
+                    .scrollContentBackground(.hidden).font(.system(size: 13)).foregroundStyle(Theme.ink)
                     .frame(height: 110).padding(6)
-                    .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                    .background(Theme.ink(0.08), in: RoundedRectangle(cornerRadius: 8))
             }
             .padding(16)
             }
@@ -366,12 +415,12 @@ private struct StatTile: View {
     var label: String
     var body: some View {
         VStack(spacing: 4) {
-            Text("\(value)").font(.system(size: 34, weight: .bold)).foregroundStyle(.white).monospacedDigit()
+            Text("\(value)").font(Theme.display(34, .bold)).foregroundStyle(Theme.ink).monospacedDigit()
             Text(label).font(.system(size: 12)).foregroundStyle(Theme.textDim)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
-        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.cardStroke, lineWidth: 1))
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+        .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).stroke(Theme.cardStroke, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 }
@@ -389,7 +438,7 @@ struct StatsPane: View {
             StatTile(value: today.snoozed, label: "Snoozed")
         }
         Card { Row(title: "Current streak", subtitle: "Days in a row with at least one break taken", symbol: "flame.fill", tile: [0xE08A20, 0xF05030]) {
-            Text("\(stats.stats.streak()) day\(stats.stats.streak() == 1 ? "" : "s")").foregroundStyle(.white).font(.system(size: 14, weight: .semibold))
+            Text("\(stats.stats.streak()) day\(stats.stats.streak() == 1 ? "" : "s")").foregroundStyle(Theme.ink).font(.system(size: 14, weight: .semibold))
         } }
         }
         Block(title: "Last 7 days") { Card {
@@ -397,7 +446,7 @@ struct StatsPane: View {
                 ForEach(0..<week.count, id: \.self) { i in
                     VStack(spacing: 6) {
                         Text("\(week[i].stats.taken)").font(.system(size: 12)).foregroundStyle(Theme.textDim)
-                        RoundedRectangle(cornerRadius: 5).fill(week[i].stats.taken > 0 ? Theme.accent : Color.white.opacity(0.1))
+                        RoundedRectangle(cornerRadius: 5).fill(week[i].stats.taken > 0 ? Theme.accent : Theme.ink(0.1))
                             .frame(height: max(6, 100 * CGFloat(week[i].stats.taken) / CGFloat(peak)))
                         Text(week[i].date, format: .dateTime.weekday(.narrow)).font(.system(size: 12)).foregroundStyle(Theme.textDim)
                     }
@@ -479,7 +528,7 @@ struct SoundsPane: View {
 struct ShortcutsPane: View {
     @ObservedObject var store: SettingsStore
     private func keys(_ s: String) -> some View {
-        Text(s).font(.system(size: 13, weight: .medium, design: .rounded)).foregroundStyle(.white)
+        Text(s).font(.system(size: 13, weight: .medium, design: .rounded)).foregroundStyle(Theme.ink)
             .padding(.horizontal, 10).frame(height: Control.height).background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
     }
     var body: some View {
@@ -523,9 +572,9 @@ struct AutomationPane: View {
 struct AboutPane: View {
     var body: some View {
         VStack(spacing: 10) {
-            Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(Theme.onAccent)
                 .frame(width: 84, height: 84).background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 20))
-            Text("LookAway").font(.system(size: 24, weight: .bold)).foregroundStyle(.white)
+            Text("LookAway").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
             Text("Version 0.2").font(.system(size: 13)).foregroundStyle(Theme.textDim)
             Text("A personal clone of the LookAway break reminder for macOS. Not affiliated with LookAway.")
                 .font(.system(size: 13)).foregroundStyle(Theme.textDim).multilineTextAlignment(.center).frame(maxWidth: 360)

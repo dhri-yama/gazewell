@@ -4,7 +4,7 @@ import UniformTypeIdentifiers
 
 struct SectionTitle: View {
     var text: String
-    var body: some View { Text(text).font(.system(size: 17, weight: .semibold)).foregroundStyle(.white).padding(.leading, 4) }
+    var body: some View { Text(text).font(Theme.display(17)).foregroundStyle(Theme.ink).padding(.leading, 4) }
 }
 
 /// A titled group of cards. Blocks are spaced 24pt apart; everything inside a block 10pt.
@@ -33,8 +33,8 @@ struct Card<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
         VStack(spacing: 0) { content }
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(Theme.cardStroke, lineWidth: 1))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
+            .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).stroke(Theme.cardStroke, lineWidth: 1))
     }
 }
 
@@ -51,11 +51,11 @@ struct Row<Control: View>: View {
     var body: some View {
         HStack(spacing: 12) {
             if let symbol {
-                Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(.white)
+                Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onAccent)
                     .frame(width: 30, height: 30).background(Theme.tile(tile), in: RoundedRectangle(cornerRadius: 8))
             }
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 14)).foregroundStyle(.white)
+                Text(title).font(.system(size: 14)).foregroundStyle(Theme.ink)
                 if let subtitle { Text(subtitle).font(.system(size: 12)).foregroundStyle(Theme.textDim).fixedSize(horizontal: false, vertical: true) }
             }
             Spacer(minLength: 12)
@@ -139,9 +139,9 @@ struct PaneHeader: View {
     var pane: Pane
     var body: some View {
         HStack(spacing: 12) {
-            Image(systemName: pane.symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(.white)
+            Image(systemName: pane.symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.onAccent)
                 .frame(width: 34, height: 34).background(Theme.tile(pane.tile), in: RoundedRectangle(cornerRadius: 9))
-            Text(pane.title).font(.system(size: 22, weight: .semibold)).foregroundStyle(.white)
+            Text(pane.title).font(Theme.display(22)).foregroundStyle(Theme.ink)
             Spacer()
         }
         .padding(.horizontal, 28).padding(.vertical, 16)
@@ -155,23 +155,23 @@ struct FieldStyle: TextFieldStyle {
             .font(.system(size: 13))
             .padding(.horizontal, 10).frame(height: Control.height)
             .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
-            .foregroundStyle(.white)
+            .foregroundStyle(Theme.ink)
     }
 }
 
 /// Shared metrics so every control in a row lines up.
 enum Control {
     static let height: CGFloat = 30
-    static let radius: CGFloat = 8
-    static let fill = Color.white.opacity(0.1)
-    static let blue = Theme.hex(0x1E78FF)
+    static var radius: CGFloat { Theme.controlRadius }
+    static var fill: Color { Theme.ink(0.1) }
+    static var blue: Color { Theme.accent }
 }
 
 struct ControlButton: ButtonStyle {
     var primary = false
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(size: 13, weight: .medium)).foregroundStyle(.white)
+            .font(.system(size: 13, weight: .medium)).foregroundStyle(primary ? Theme.onAccentText : Theme.ink)
             .padding(.horizontal, 12).frame(height: Control.height)
             .background(primary ? Theme.accent : Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
             .opacity(configuration.isPressed ? 0.7 : 1)
@@ -195,7 +195,7 @@ struct IconButton: View {
     }
     private struct IconStyle: ButtonStyle {
         func makeBody(configuration: Configuration) -> some View {
-            configuration.label.foregroundStyle(.white)
+            configuration.label.foregroundStyle(Theme.ink)
                 .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
                 .opacity(configuration.isPressed ? 0.7 : 1)
                 .pressSpring(configuration.isPressed)
@@ -209,7 +209,7 @@ struct Switch: View {
     @Binding var isOn: Bool
     var body: some View {
         Button { isOn.toggle() } label: {
-            Capsule().fill(isOn ? Control.blue : Color.white.opacity(0.18))
+            Capsule().fill(isOn ? Control.blue : Theme.ink(0.18))
                 .frame(width: 44, height: 26)
                 .overlay(alignment: isOn ? .trailing : .leading) {
                     Circle().fill(.white).frame(width: 22, height: 22).padding(2).shadow(color: .black.opacity(0.25), radius: 1.5, y: 1)
@@ -235,7 +235,7 @@ struct Dropdown<T: Hashable>: View {
                 Text(options.first { $0.0 == selection }?.1 ?? "").lineLimit(1)
                 Image(systemName: "chevron.up.chevron.down").font(.system(size: 9, weight: .bold)).foregroundStyle(Theme.textDim)
             }
-            .font(.system(size: 13, weight: .medium)).foregroundStyle(.white)
+            .font(.system(size: 13, weight: .medium)).foregroundStyle(Theme.ink)
             .padding(.horizontal, 10).frame(height: Control.height)
             .background(Control.fill, in: RoundedRectangle(cornerRadius: Control.radius))
         }

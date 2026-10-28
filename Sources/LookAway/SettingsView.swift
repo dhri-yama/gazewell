@@ -67,13 +67,13 @@ private struct SidebarItem: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: pane.symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                Image(systemName: pane.symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.onAccent)
                     .frame(width: 28, height: 28).background(Theme.tile(pane.tile), in: RoundedRectangle(cornerRadius: 8))
-                Text(pane.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(.white)
+                Text(pane.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
                 Spacer()
             }
             .padding(.horizontal, 8).padding(.vertical, 5)
-            .background(selected ? Color.white.opacity(0.1) : .clear, in: RoundedRectangle(cornerRadius: 10))
+            .background(selected ? Theme.ink(0.1) : .clear, in: RoundedRectangle(cornerRadius: 10))
             .contentShape(RoundedRectangle(cornerRadius: 10))
         }
         .buttonStyle(.plain)
@@ -118,7 +118,8 @@ struct SettingsView: View {
         }
         .frame(width: 960, height: height)
         .background { Theme.glow }
-        .environment(\.colorScheme, .dark)
+        .id(store.settings.appStyle)    // rebuild the tree so every view re-reads the new theme
+        .environment(\.colorScheme, Theme.scheme)
     }
 
     @ViewBuilder private var content: some View {

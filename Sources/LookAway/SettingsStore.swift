@@ -22,6 +22,7 @@ enum BreakTheme: String, Codable, CaseIterable {
         switch self {
         case .wallpaper: "Desktop wallpaper"
         case .image: "Custom image"
+        case .olive: "Signature"      // follows the app theme
         default: rawValue.capitalized
         }
     }
@@ -144,6 +145,7 @@ struct AppSettings: Codable, Equatable {
     var shortcutsEnabled = true
     // General
     var showTimeInMenuBar = false
+    var appStyle = "Aurora"               // visual theme: Aurora, Paper glass or Mono focus
 
     init() {}
 
@@ -167,7 +169,7 @@ struct AppSettings: Codable, Equatable {
         titleFont = v(.titleFont, titleFont); subtitleFont = v(.subtitleFont, subtitleFont); timerFont = v(.timerFont, timerFont)
         startSound = v(.startSound, startSound); endSound = v(.endSound, endSound); soundVolume = v(.soundVolume, soundVolume)
         startHook = v(.startHook, startHook); endHook = v(.endHook, endHook)
-        shortcutsEnabled = v(.shortcutsEnabled, shortcutsEnabled); showTimeInMenuBar = v(.showTimeInMenuBar, showTimeInMenuBar)
+        shortcutsEnabled = v(.shortcutsEnabled, shortcutsEnabled); showTimeInMenuBar = v(.showTimeInMenuBar, showTimeInMenuBar); appStyle = v(.appStyle, appStyle)
     }
 }
 
@@ -195,6 +197,7 @@ final class SettingsStore: ObservableObject {
             loaded.titleFont = def.title; loaded.subtitleFont = def.subtitle; loaded.timerFont = def.timer
         }
         settings = loaded
+        Theme.style = Style.named(loaded.appStyle)   // before any view is built
         apply()
     }
 
@@ -206,6 +209,7 @@ final class SettingsStore: ObservableObject {
 
     private func apply() {
         let s = settings
+        Theme.style = Style.named(s.appStyle)
         let eyes = BreakRule(kind: .eyes, interval: s.breakEvery, duration: s.breakDuration, enabled: s.breaksEnabled, message: "")
         scheduler.rules = [eyes] + s.planned
         scheduler.headsUpLead = s.headsUpEnabled ? s.headsUpLead : 0

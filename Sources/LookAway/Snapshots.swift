@@ -7,10 +7,10 @@ enum Snapshots {
     static func run(into dir: String) {
         _ = NSApplication.shared
         func shot<V: View>(_ name: String, _ view: V, _ size: CGSize) {
-            let host = NSHostingView(rootView: view.environment(\.colorScheme, .dark))
+            let host = NSHostingView(rootView: view.environment(\.colorScheme, Theme.scheme))
             host.frame = CGRect(origin: .zero, size: size)
             let w = NSWindow(contentRect: host.frame, styleMask: .borderless, backing: .buffered, defer: false)
-            w.appearance = NSAppearance(named: .darkAqua)
+            w.appearance = Theme.appearance
             w.contentView = host
             host.layoutSubtreeIfNeeded()
             RunLoop.main.run(until: Date().addingTimeInterval(0.5))
@@ -43,6 +43,30 @@ enum Snapshots {
             shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 760, height: 560))
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
+        // Direction comparison: every surface once per style.
+        let presetFor: [String: Int] = ["Aurora": 4, "Paper glass": 0, "Mono focus": 3]
+        for style in Style.all {
+            Theme.style = style
+            let slug = style.name.lowercased().replacingOccurrences(of: " ", with: "-")
+            var s = store.settings; let pre = FontPreset.all[presetFor[style.name] ?? 0]
+            s.titleFont = pre.title; s.subtitleFont = pre.subtitle; s.timerFont = pre.timer; s.theme = .olive
+            shot("cmp-\(slug)-break", BreakView(scheduler: sched, settings: s,
+                 copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
+                 image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
+            shot("cmp-\(slug)-headsup", HeadsUpCard(scheduler: hu, canSnooze: true, timerFont: s.timerFont, textFont: s.subtitleFont)
+                 .padding(20).background(Theme.style.dark ? Color(white: 0.25) : Color(white: 0.85)), CGSize(width: 500, height: 190))
+            shot("cmp-\(slug)-menu", MenuPopover(scheduler: hu, store: store, stats: stats)
+                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 360, height: 420))
+            shot("cmp-\(slug)-nudge", NudgeView(nudge: Nudge.defaults[0], font: s.subtitleFont, start: Date().addingTimeInterval(-1.2))
+                 .background(Theme.style.dark ? Color(white: 0.2) : Color(white: 0.9)), CGSize(width: 760, height: 560))
+            let nav3 = SettingsNav(); nav3.pane = .general
+            shot("cmp-\(slug)-general", SettingsView(store: store, stats: stats, nav: nav3, height: 760)
+                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 760))
+            let nav2 = SettingsNav(); nav2.pane = .screenBreaks
+            shot("cmp-\(slug)-settings", SettingsView(store: store, stats: stats, nav: nav2, height: 1000)
+                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 1000))
+        }
+        Theme.style = Style.aurora
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
