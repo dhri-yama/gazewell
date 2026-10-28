@@ -4,7 +4,12 @@ import UniformTypeIdentifiers
 
 struct SectionTitle: View {
     var text: String
-    var body: some View { Text(text).font(Theme.display(17)).foregroundStyle(Theme.ink).padding(.leading, 4) }
+    var body: some View {
+        HStack(spacing: 14) {
+            Text(text.uppercased()).font(.system(size: 12, weight: .semibold)).tracking(2.2).foregroundStyle(Theme.accent)
+            Rectangle().fill(Theme.hairline).frame(height: 1)
+        }
+    }
 }
 
 /// A titled group of cards. Blocks are spaced 24pt apart; everything inside a block 10pt.
@@ -12,8 +17,8 @@ struct Block<Content: View>: View {
     var title: String?
     @ViewBuilder var content: Content
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let title { SectionTitle(text: title) }
+        VStack(alignment: .leading, spacing: 4) {
+            if let title { SectionTitle(text: title).padding(.bottom, 4) }
             content
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -29,40 +34,33 @@ struct Note: View {
     }
 }
 
+/// A group of rows. Flat: rows sit directly on the window, separated by hairlines (no boxes).
 struct Card<Content: View>: View {
     @ViewBuilder var content: Content
-    var body: some View {
-        VStack(spacing: 0) { content }
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
-            .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).stroke(Theme.cardStroke, lineWidth: 1))
-    }
+    var body: some View { VStack(spacing: 0) { content } }
 }
 
-struct Sep: View { var body: some View { Rectangle().fill(Theme.hairline).frame(height: 1).padding(.leading, 16) } }
+struct Sep: View { var body: some View { Rectangle().fill(Theme.hairline).frame(height: 1) } }
 
 /// Label (and optional hint) on the left, any control on the right.
 struct Row<Control: View>: View {
     var title: String
     var subtitle: String?
-    var symbol: String?
-    var tile: [UInt32] = [0xC8509A, 0xF0884A]
+    var symbol: String?          // kept for call sites; the flat design shows no icons in rows
+    var tile: [UInt32] = []
     @ViewBuilder var control: Control
 
     var body: some View {
-        HStack(spacing: 12) {
-            if let symbol {
-                Image(systemName: symbol).font(.system(size: 14, weight: .semibold)).foregroundStyle(Theme.onAccent)
-                    .frame(width: 30, height: 30).background(Theme.tile(tile), in: RoundedRectangle(cornerRadius: 8))
-            }
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 14)).foregroundStyle(Theme.ink)
+        HStack(spacing: 16) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.ink)
                 if let subtitle { Text(subtitle).font(.system(size: 12)).foregroundStyle(Theme.textDim).fixedSize(horizontal: false, vertical: true) }
             }
             Spacer(minLength: 12)
             control
         }
-        .padding(.horizontal, 16).padding(.vertical, 10)
-        .frame(minHeight: 54)
+        .padding(.vertical, 12)
+        .frame(minHeight: 52)
     }
 }
 
@@ -138,13 +136,11 @@ func chooseFile(types: [UTType], _ pick: (String) -> Void) {
 struct PaneHeader: View {
     var pane: Pane
     var body: some View {
-        HStack(spacing: 12) {
-            Image(systemName: pane.symbol).font(.system(size: 16, weight: .semibold)).foregroundStyle(Theme.onAccent)
-                .frame(width: 34, height: 34).background(Theme.tile(pane.tile), in: RoundedRectangle(cornerRadius: 9))
-            Text(pane.title).font(Theme.display(22)).foregroundStyle(Theme.ink)
-            Spacer()
+        VStack(alignment: .leading, spacing: 8) {
+            Text(pane.title).font(Theme.display(38, .bold)).foregroundStyle(Theme.ink)
+            Text(pane.blurb).font(.system(size: 15)).foregroundStyle(Theme.textDim)
         }
-        .padding(.horizontal, 28).padding(.vertical, 16)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

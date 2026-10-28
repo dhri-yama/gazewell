@@ -37,46 +37,62 @@ enum Pane: String, CaseIterable, Identifiable {
         }
     }
 
-    var tile: [UInt32] {
+    /// Label under the toolbar icon.
+    var short: String {
         switch self {
-        case .general: [0xB05CD8, 0xE0609A]
-        case .screenBreaks, .breakScreen, .smartPause, .wellness, .stats: [0xC8509A, 0xF0609A]
-        case .alerts, .sounds, .shortcuts: [0xE0505A, 0xF08050]
-        case .automation: [0xE08A20, 0xF0B030]
-        case .about: [0xE0B020, 0xF0C840]
+        case .general: "General"
+        case .screenBreaks: "Breaks"
+        case .breakScreen: "Screen"
+        case .smartPause: "Pause"
+        case .wellness: "Wellness"
+        case .stats: "Stats"
+        case .alerts: "Alerts"
+        case .sounds: "Sounds"
+        case .shortcuts: "Keys"
+        case .automation: "Automate"
+        case .about: "About"
         }
     }
 
-    static let groups: [(String?, [Pane])] = [
-        (nil, [.general]),
-        ("Focus & Wellbeing", [.screenBreaks, .breakScreen, .smartPause, .wellness, .stats]),
-        ("Behavior & Feedback", [.alerts, .sounds, .shortcuts]),
-        ("Integrations", [.automation]),
-        ("OpenLookAway", [.about]),
-    ]
+    var blurb: String {
+        switch self {
+        case .general: "Theme, startup and the master switch."
+        case .screenBreaks: "How often, how long, and how strictly you rest."
+        case .breakScreen: "Background, type and messages for the break screen."
+        case .smartPause: "Stay out of the way during calls, recordings and focus."
+        case .wellness: "Gentle full-screen nudges for posture, blinking, water and stretching."
+        case .stats: "How your breaks are going."
+        case .alerts: "The heads-up before a break begins."
+        case .sounds: "What you hear when a break starts and ends."
+        case .shortcuts: "Global keys that work from any app."
+        case .automation: "Run a Shortcut or script around breaks."
+        case .about: "About this app."
+        }
+    }
 }
 
 final class SettingsNav: ObservableObject {
     @Published var pane: Pane = .general
 }
 
-private struct SidebarItem: View {
+/// One icon-over-label tab in the top toolbar.
+private struct TabItem: View {
     var pane: Pane
     var selected: Bool
     var action: () -> Void
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 10) {
-                Image(systemName: pane.symbol).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.onAccent)
-                    .frame(width: 28, height: 28).background(Theme.tile(pane.tile), in: RoundedRectangle(cornerRadius: 8))
-                Text(pane.title).font(.system(size: 14, weight: selected ? .semibold : .regular)).foregroundStyle(Theme.ink)
-                Spacer()
+            VStack(spacing: 5) {
+                Image(systemName: pane.symbol).font(.system(size: 17, weight: .medium)).frame(height: 22)
+                Text(pane.short).font(.system(size: 11, weight: selected ? .semibold : .medium))
             }
-            .padding(.horizontal, 8).padding(.vertical, 5)
-            .background(selected ? Theme.ink(0.1) : .clear, in: RoundedRectangle(cornerRadius: 10))
-            .contentShape(RoundedRectangle(cornerRadius: 10))
+            .foregroundStyle(selected ? Theme.ink : Theme.ink(0.5))
+            .frame(maxWidth: .infinity).padding(.vertical, 10)
+            .overlay(alignment: .bottom) { Capsule().fill(Theme.accent).frame(width: selected ? 28 : 0, height: 3) }
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(pane.title)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
 }
@@ -85,38 +101,31 @@ struct SettingsView: View {
     @ObservedObject var store: SettingsStore
     @ObservedObject var stats: StatsStore
     @ObservedObject var nav: SettingsNav
-    var height: CGFloat = 680
+    var height: CGFloat = 720
 
     var body: some View {
-        HStack(spacing: 0) {
-            ScrollView(showsIndicators: false) {
-                VStack(alignment: .leading, spacing: 4) {
-                    ForEach(Pane.groups, id: \.0) { group in
-                        if let name = group.0 {
-                            Text(name).font(.system(size: 13, weight: .semibold)).foregroundStyle(Theme.textDim)
-                                .padding(.leading, 10).padding(.top, 18).padding(.bottom, 4)
-                        }
-                        ForEach(group.1) { pane in
-                            SidebarItem(pane: pane, selected: nav.pane == pane) { nav.pane = pane }
-                        }
-                    }
+        VStack(spacing: 0) {
+            // Toolbar of tabs across the top, under the traffic lights.
+            HStack(spacing: 0) {
+                ForEach(Pane.allCases) { pane in
+                    TabItem(pane: pane, selected: nav.pane == pane) { nav.pane = pane }
                 }
-                .padding(.horizontal, 12).padding(.top, 52).padding(.bottom, 16)
             }
-            .frame(width: 244)
+            .padding(.horizontal, 14).padding(.top, 30)
             .background(Theme.sidebarBg)
+            .overlay(alignment: .bottom) { Rectangle().fill(Theme.hairline).frame(height: 1) }
 
-            VStack(spacing: 0) {
-                PaneHeader(pane: nav.pane).padding(.top, 26)
-                Rectangle().fill(Theme.hairline).frame(height: 1)
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 24) { content }
-                        .padding(.horizontal, 28).padding(.vertical, 22)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 30) {
+                    PaneHeader(pane: nav.pane)
+                    content
                 }
+                .frame(maxWidth: 740, alignment: .leading)
+                .padding(.horizontal, 40).padding(.vertical, 34)
+                .frame(maxWidth: .infinity)
             }
         }
-        .frame(width: 960, height: height)
+        .frame(width: 880, height: height)
         .background { Theme.glow }
         .id(store.settings.appStyle)    // rebuild the tree so every view re-reads the new theme
         .environment(\.colorScheme, Theme.scheme)

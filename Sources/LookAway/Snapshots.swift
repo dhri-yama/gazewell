@@ -66,17 +66,17 @@ enum Snapshots {
             }
             let nav3 = SettingsNav(); nav3.pane = .general
             shot("cmp-\(slug)-general", SettingsView(store: store, stats: stats, nav: nav3, height: 760)
-                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 760))
+                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 880, height: 760))
             let nav2 = SettingsNav(); nav2.pane = .screenBreaks
             shot("cmp-\(slug)-settings", SettingsView(store: store, stats: stats, nav: nav2, height: 1000)
-                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 1000))
+                 .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 880, height: 1000))
         }
         Theme.style = Style.forest
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
             let tall: CGFloat = pane == .screenBreaks ? 1500 : pane == .breakScreen ? 1500 : 680
-            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall).background(Color(white: 0.22)), CGSize(width: 960, height: tall))
+            shot("settings-\(pane.rawValue)", SettingsView(store: store, stats: stats, nav: nav, height: tall).background(Color(white: 0.22)), CGSize(width: 880, height: tall))
         }
     }
 }

@@ -60,7 +60,7 @@ struct GeneralPane: View {
                         StyleTile(style: st, selected: store.settings.appStyle == st.name) { store.settings.appStyle = st.name }
                     }
                 }
-                .padding(16)
+                .padding(.vertical, 14)
             }
             Note("Applies everywhere: this window, the menu, the break screen, the heads-up card and reminders.")
         }
@@ -99,7 +99,7 @@ private struct EnforcementTile: View {
         Button(action: action) {
             VStack(spacing: 6) {
                 ZStack {
-                    LinearGradient(colors: [Theme.hex(0x7A4FA8), Theme.hex(0xC0384A), Theme.hex(0xE08A3A)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    LinearGradient(colors: [Theme.palette(.olive).blobs[0], Theme.palette(.olive).blobs[1], Theme.palette(.olive).blobs[3]], startPoint: .topLeading, endPoint: .bottomTrailing)
                     HStack(spacing: 8) {
                         switch level {
                         case .casual: Image(systemName: "forward")
@@ -143,7 +143,7 @@ private struct PlannedEditor: View {
                 TextField("Message", text: $rule.message).textFieldStyle(FieldStyle())
             }
         }
-        .padding(.horizontal, 16).padding(.vertical, 12)
+        .padding(.vertical, 12)
     }
 }
 
@@ -212,7 +212,7 @@ struct ScreenBreaksPane: View {
                     EnforcementTile(level: level, selected: store.settings.enforcement == level) { store.settings.enforcement = level }
                 }
             }
-            .padding(16)
+            .padding(.vertical, 14)
             Sep()
             MenuRow(title: "Snoozes allowed per day", selection: $store.settings.snoozesPerDay,
                     options: [(0, "None"), (1, "1"), (2, "2"), (3, "3"), (5, "5"), (10, "10"), (-1, "Unlimited")])
@@ -308,7 +308,7 @@ struct BreakScreenPane: View {
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 100), spacing: 14)], spacing: 16) {
                 ForEach(BreakTheme.allCases, id: \.self) { swatch($0) }
             }
-            .padding(16)
+            .padding(.vertical, 14)
             if store.settings.theme == .image {
                 Sep()
                 Row(title: store.settings.imagePath.isEmpty ? "No image chosen" : (store.settings.imagePath as NSString).lastPathComponent) {
@@ -344,7 +344,7 @@ struct BreakScreenPane: View {
                     .frame(height: 110).padding(6)
                     .background(Theme.ink(0.08), in: RoundedRectangle(cornerRadius: 8))
             }
-            .padding(16)
+            .padding(.vertical, 14)
             }
             Note("One per line. Write \u{201C}Title | Subtitle\u{201D} to set both lines; a single phrase is used as the subtitle. Leave empty for the built-in messages.")
         }
@@ -425,7 +425,6 @@ private struct StatTile: View {
             Text(label).font(.system(size: 12)).foregroundStyle(Theme.textDim)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.cardRadius))
         .overlay(RoundedRectangle(cornerRadius: Theme.cardRadius).stroke(Theme.cardStroke, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
@@ -460,7 +459,7 @@ struct StatsPane: View {
                     .accessibilityElement(children: .combine)
                 }
             }
-            .frame(height: 150, alignment: .bottom).padding(16)
+            .frame(height: 150, alignment: .bottom).padding(.vertical, 14)
         } }
     }
 }
@@ -579,7 +578,7 @@ struct AboutPane: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(Theme.onAccent)
-                .frame(width: 84, height: 84).background(Theme.tile([0xC8509A, 0xF0884A]), in: RoundedRectangle(cornerRadius: 20))
+                .frame(width: 84, height: 84).background(Theme.accent, in: RoundedRectangle(cornerRadius: 20))
             Text("OpenLookAway").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
             Text("Version 0.2").font(.system(size: 13)).foregroundStyle(Theme.textDim)
             Text("A personal clone of the LookAway break reminder for macOS. Not affiliated with LookAway.")
