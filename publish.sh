@@ -12,7 +12,7 @@ awk -v v="$V" '/^## \[/ { p = index($0, "[" v "]") > 0; next } p' CHANGELOG.md >
 cat >> "$NOTES" <<EOF
 
 ### Install
-- Homebrew: \`brew install --cask dhri-yama/tap/gazewell\`
+- Homebrew: \`brew tap dhri-yama/tap && brew trust dhri-yama/tap && brew install --cask gazewell\`
 - Or open the DMG and drag Gazewell to Applications. The app is not notarized: on first launch go to System Settings, Privacy & Security, and choose Open Anyway.
 EOF
 gh release create "v$V" "Gazewell-$V.dmg" --title "Gazewell $V" --notes-file "$NOTES"

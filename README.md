@@ -58,10 +58,15 @@ Gentle animations in your theme, never a full break: rain for water, rising chev
 - Stats and streaks, global shortcuts, Shortcuts/AppleScript hooks, launch at login
 
 ## Install
-- **Homebrew:** `brew install --cask dhri-yama/tap/gazewell`
+- **Homebrew:**
+  ```sh
+  brew tap dhri-yama/tap
+  brew trust dhri-yama/tap      # recent Homebrew only loads third-party taps you have trusted
+  brew install --cask gazewell
+  ```
 - **DMG:** download `Gazewell-<version>.dmg` from the [latest release](https://github.com/dhri-yama/gazewell/releases/latest), open it and drag Gazewell to Applications.
 
-Gazewell is ad-hoc signed, not notarized, so macOS may block the first launch of the DMG copy: open System Settings → Privacy & Security and choose **Open Anyway**. The Homebrew install clears that flag for you. Requires macOS 13 or later; runs natively on Apple silicon and Intel.
+Gazewell is ad-hoc signed, not notarized, so macOS may block the first launch however you install it: open System Settings → Privacy & Security and choose **Open Anyway**. Requires macOS 13 or later; runs natively on Apple silicon and Intel.
 
 ## Build
 Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
