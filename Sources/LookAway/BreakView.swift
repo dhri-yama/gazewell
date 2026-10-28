@@ -13,6 +13,45 @@ extension AppSettings {
     }
 }
 
+/// Flat vector tree that grows with `progress` (0...1): a bare seedling, two leaves, then a full canopy. Sways gently.
+private struct TreeView: View {
+    var progress: Double
+    var sway: Double          // degrees
+    private let trunk = Color(red: 0.72, green: 0.52, blue: 0.33)
+
+    var body: some View {
+        let p = min(max(progress, 0), 1)
+        let canopy = min(max((p - 0.3) / 0.7, 0), 1)
+        let leaves = min(max(p / 0.25, 0), 1)
+        let trunkH = 26 + 104 * p
+        ZStack(alignment: .bottom) {
+            Ellipse().fill(Color.black.opacity(0.25)).frame(width: 170, height: 26).offset(y: 6)
+            Ellipse().fill(LinearGradient(colors: [Theme.hex(0x4FA861), Theme.hex(0x2C7A4B)], startPoint: .top, endPoint: .bottom))
+                .frame(width: 150, height: 30)
+            ZStack(alignment: .bottom) {
+                RoundedRectangle(cornerRadius: 6).fill(trunk).frame(width: 12, height: trunkH)
+                // seedling leaves, fading out as the canopy takes over
+                Group {
+                    Ellipse().fill(Theme.hex(0x7BD47E)).frame(width: 34, height: 18).rotationEffect(.degrees(-28)).offset(x: -20, y: -trunkH + 4)
+                    Ellipse().fill(Theme.hex(0x5BBF6E)).frame(width: 34, height: 18).rotationEffect(.degrees(28)).offset(x: 20, y: -trunkH + 4)
+                }
+                .scaleEffect(leaves).opacity(1 - canopy)
+                // canopy: three overlapping blobs
+                Group {
+                    Circle().fill(Theme.hex(0x3FAE6A)).frame(width: 96, height: 96).offset(x: -34, y: -trunkH + 24)
+                    Circle().fill(Theme.hex(0x5BC47A)).frame(width: 108, height: 108).offset(x: 30, y: -trunkH + 20)
+                    Circle().fill(Theme.hex(0x8FE08A)).frame(width: 92, height: 92).offset(x: 0, y: -trunkH - 18)
+                }
+                .scaleEffect(canopy, anchor: .bottom).opacity(canopy)
+            }
+            .rotationEffect(.degrees(sway), anchor: .bottom)
+            .offset(y: -10)
+        }
+        .frame(width: 280, height: 290, alignment: .bottom)
+        .accessibilityHidden(true)
+    }
+}
+
 private struct Pill: View {
     var title: String
     var symbol: String?
@@ -179,9 +218,38 @@ struct BreakView: View {
         }
     }
 
+    /// Forest: a tree grows through the break inside a soft glow, countdown beneath it.
+    private var forest: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let progress = Double(scheduler.elapsed) / Double(max(1, scheduler.breakLength))
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 60) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(60)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.78))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 14)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                let sway = reduce ? 0 : 1.8 * sin(ctx.date.timeIntervalSinceReferenceDate * 2 * .pi / 6)
+                ZStack {
+                    Circle().fill(RadialGradient(colors: [Theme.hex(0xC9E265, 0.32), .clear], center: .center, startRadius: 0, endRadius: 230))
+                        .frame(width: 460, height: 460)
+                    TreeView(progress: progress, sway: sway).scaleEffect(1.55, anchor: .bottom).offset(y: 20)
+                }
+            }
+            .frame(height: 400).padding(.top, 10)
+            timerText(52, opacity: 0.85)
+            Spacer()
+            controls.padding(.bottom, 52)
+        }
+    }
+
     var body: some View {
         Group {
             switch Theme.style.breakLayout {
+            case .forest: forest
             case .editorial: editorial
             case .sun: sun
             case .centered: centered

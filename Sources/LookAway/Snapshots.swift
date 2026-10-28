@@ -43,14 +43,17 @@ enum Snapshots {
             shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.5, 0.8, 0.8][i])).background(Color.gray), CGSize(width: 760, height: 560))
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
+        // A break 14s in, so tree-growth layouts show a mid-growth state.
+        var clockNow = Date()
+        let grown = BreakScheduler(now: { clockNow }); grown.startBreak(duration: 20); clockNow += 14; grown.tick()
         // Direction comparison: every surface once per style.
-        let presetFor: [String: Int] = ["Headspace": 4, "Paper glass": 0, "Mono focus": 3]
+        let presetFor: [String: Int] = ["Headspace": 4, "Forest": 4, "Paper glass": 0, "Mono focus": 3]
         for style in Style.all {
             Theme.style = style
             let slug = style.name.lowercased().replacingOccurrences(of: " ", with: "-")
             var s = store.settings; let pre = FontPreset.all[presetFor[style.name] ?? 0]
             s.titleFont = pre.title; s.subtitleFont = pre.subtitle; s.timerFont = pre.timer; s.theme = .olive
-            shot("cmp-\(slug)-break", BreakView(scheduler: sched, settings: s,
+            shot("cmp-\(slug)-break", BreakView(scheduler: grown, settings: s,
                  copy: BreakCopy(title: "Catch a quick rest", subtitle: "Focus on a distant point until it's time to resume"),
                  image: nil, onSkip: {}, onLock: {}), CGSize(width: 1440, height: 900))
             shot("cmp-\(slug)-headsup", HeadsUpCard(scheduler: hu, canSnooze: true, timerFont: s.timerFont, textFont: s.subtitleFont)

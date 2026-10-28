@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case centered, editorial, sun }
+enum BreakLayout { case centered, editorial, sun, forest }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -45,6 +45,16 @@ extension Style {
         cardSolid: hex(0xFFF8EC, 0.96), breakLayout: .sun, glyph: [0xFFC15E, 0xF47D31], glyphInk: 0x4A2308,
         cardFill: Color.white.opacity(0.62), onAccent: hex(0x2A2540))
 
+    /// Deep leafy green glass, mint and cream, a flat tree that grows through the break. Inspired by focus-and-grow apps; no third-party assets.
+    static let forest = Style(
+        name: "Forest", dark: true, ink: hex(0xF1F6E8), veil: hex(0x06231A, 0.5), sidebar: hex(0x04191A, 0.34),
+        cardOpacity: 0.08, strokeOpacity: 0.13, hairlineOpacity: 0.11, accent: hex(0x6FD38A),
+        glowA: hex(0x2FA46A, 0.55), glowB: hex(0xC9E265, 0.28),
+        backdrop: (hex(0x0A2E22), [hex(0x1F7A4D), hex(0x4E9F5E), hex(0x145A3E), hex(0x6FA84A)]),
+        tileOverride: [0x7BD47E, 0x2E8B57], cardRadius: 20, controlRadius: 12, displayDesign: .rounded, material: .hudWindow,
+        cardSolid: hex(0x0F3A2B, 0.94), breakLayout: .forest, glyph: [0xB5E36F, 0x3FAE6A], glyphInk: 0x0B2E1F,
+        onAccent: hex(0x06231A))
+
     /// Light frosted paper over soft pastel light, dark ink, serif headings.
     static let paper = Style(
         name: "Paper glass", dark: false, ink: hex(0x1C1B22), veil: hex(0xFFF7EE, 0.45), sidebar: hex(0xFFFFFF, 0.28),
@@ -64,7 +74,7 @@ extension Style {
         cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
         onAccent: hex(0x10130A))
 
-    static let all = [headspace, paper, mono]
+    static let all = [headspace, forest, paper, mono]
     static func named(_ n: String) -> Style { all.first { $0.name == n } ?? headspace }
 }
 
