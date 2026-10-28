@@ -145,7 +145,7 @@ struct AppSettings: Codable, Equatable {
     var shortcutsEnabled = true
     // General
     var showTimeInMenuBar = false
-    var appStyle = "Aurora"               // visual theme: Aurora, Paper glass or Mono focus
+    var appStyle = "Headspace"             // visual theme: Headspace, Paper glass or Mono focus
 
     init() {}
 
@@ -197,6 +197,7 @@ final class SettingsStore: ObservableObject {
             loaded.titleFont = def.title; loaded.subtitleFont = def.subtitle; loaded.timerFont = def.timer
         }
         settings = loaded
+        if !Style.all.contains(where: { $0.name == loaded.appStyle }) { loaded.appStyle = Style.headspace.name }   // e.g. the removed Aurora theme
         Theme.style = Style.named(loaded.appStyle)   // before any view is built
         apply()
     }

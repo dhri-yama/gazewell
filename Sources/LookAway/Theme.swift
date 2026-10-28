@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case centered, editorial }
+enum BreakLayout { case centered, editorial, sun }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -26,6 +26,8 @@ struct Style {
     var breakLayout: BreakLayout
     var glyph: [UInt32]               // reminder glyph disc gradient
     var glyphInk: UInt32              // arrow / eyes drawn on the disc
+    var cardFill: Color? = nil        // solid-ish card colour; nil = a tint of `ink`
+    var onAccent: Color = .white      // text on accent-coloured buttons
 }
 
 extension Style {
@@ -33,14 +35,15 @@ extension Style {
         Color(red: Double((v >> 16) & 0xFF) / 255, green: Double((v >> 8) & 0xFF) / 255, blue: Double(v & 0xFF) / 255, opacity: a)
     }
 
-    /// Dark frosted glass, vivid violet-to-coral light, big rounded shapes.
-    static let aurora = Style(
-        name: "Aurora", dark: true, ink: .white, veil: hex(0x0B0820, 0.42), sidebar: hex(0x0B0820, 0.28),
-        cardOpacity: 0.09, strokeOpacity: 0.16, hairlineOpacity: 0.12, accent: hex(0xFF6F61),
-        glowA: hex(0x7C4DFF, 0.55), glowB: hex(0xFF7A59, 0.4),
-        backdrop: (hex(0x0E0B24), [hex(0x6B3FD8), hex(0xD8459A), hex(0xFF7A59), hex(0x2A2A8F)]),
-        tileOverride: nil, cardRadius: 20, controlRadius: 11, displayDesign: .rounded, material: .hudWindow,
-        cardSolid: hex(0x1B1236, 0.9), breakLayout: .centered, glyph: [0xB06BFF, 0xFF7A59], glyphInk: 0x2A0F4A)
+    /// Warm, friendly and sunny: orange accent, cream surfaces, very round shapes, a sun-circle countdown. Inspired by meditation apps; no third-party assets.
+    static let headspace = Style(
+        name: "Headspace", dark: false, ink: hex(0x2A2540), veil: hex(0xFFF1DC, 0.5), sidebar: hex(0xFFFFFF, 0.32),
+        cardOpacity: 0.06, strokeOpacity: 0.08, hairlineOpacity: 0.09, accent: hex(0xF47D31),
+        glowA: hex(0xFFD166, 0.75), glowB: hex(0xFF9E5E, 0.5),
+        backdrop: (hex(0xFFA24D), [hex(0xFFD27A), hex(0xFF7F32), hex(0xFFE9C2), hex(0xFFB86B)]),
+        tileOverride: [0xFFB347, 0xF47D31], cardRadius: 26, controlRadius: 16, displayDesign: .rounded, material: .popover,
+        cardSolid: hex(0xFFF8EC, 0.96), breakLayout: .sun, glyph: [0xFFC15E, 0xF47D31], glyphInk: 0x4A2308,
+        cardFill: Color.white.opacity(0.62), onAccent: hex(0x2A2540))
 
     /// Light frosted paper over soft pastel light, dark ink, serif headings.
     static let paper = Style(
@@ -58,15 +61,16 @@ extension Style {
         glowA: hex(0x39414F, 0.55), glowB: hex(0x20262E, 0.5),
         backdrop: (hex(0x0B0C0E), [hex(0x2B3340), hex(0x1F242C), hex(0x3A4250), hex(0x161A20)]),
         tileOverride: [0x4A4F58, 0x2C3038], cardRadius: 8, controlRadius: 6, displayDesign: .serif, material: .hudWindow,
-        cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A)
+        cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
+        onAccent: hex(0x10130A))
 
-    static let all = [aurora, paper, mono]
-    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? aurora }
+    static let all = [headspace, paper, mono]
+    static func named(_ n: String) -> Style { all.first { $0.name == n } ?? headspace }
 }
 
 /// Current look. Set once at launch (or per render in the snapshot harness).
 enum Theme {
-    static var style = Style.aurora
+    static var style = Style.headspace
 
     static func hex(_ v: UInt32, _ a: Double = 1) -> Color { Style.hex(v, a) }
 
@@ -76,11 +80,11 @@ enum Theme {
     static let onAccent = Color.white
     static var textDim: Color { ink(0.6) }
     static var accent: Color { style.accent }
-    /// Foreground for text that sits on the accent colour (lime needs dark text, the rest white).
-    static var onAccentText: Color { style.dark && style.accent == Style.mono.accent ? hex(0x10130A) : .white }
+    /// Foreground for text that sits on the accent colour.
+    static var onAccentText: Color { style.onAccent }
 
     static var sidebarBg: Color { style.sidebar }
-    static var card: Color { ink(style.cardOpacity) }
+    static var card: Color { style.cardFill ?? ink(style.cardOpacity) }
     static var cardStroke: Color { ink(style.strokeOpacity) }
     static var hairline: Color { ink(style.hairlineOpacity) }
     static var cardRadius: CGFloat { style.cardRadius }

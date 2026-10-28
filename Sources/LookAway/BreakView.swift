@@ -82,10 +82,10 @@ struct BreakView: View {
             .font(settings.subtitleFont.font(22)).foregroundStyle(Theme.ink(0.85))
     }
 
-    private var timerText: some View {
+    private func timerText(_ size: CGFloat = 64, opacity: Double = 0.5) -> some View {
         Text(clock)
-            .font(settings.timerFont.font(64)).monospacedDigit()
-            .foregroundStyle(Theme.ink(0.5))
+            .font(settings.timerFont.font(size)).monospacedDigit()
+            .foregroundStyle(Theme.ink(opacity))
             .accessibilityLabel(spoken)
     }
 
@@ -101,7 +101,7 @@ struct BreakView: View {
                 }
                 if settings.showLockButton { Pill(title: "Lock Screen", symbol: "lock", progress: nil, action: onLock) }
             }
-            if let escHint { Text(escHint).font(.system(size: 17)).foregroundStyle(Theme.ink(0.4)) }
+            if let escHint { Text(escHint).font(.system(size: 17)).foregroundStyle(Theme.ink(Theme.style.dark ? 0.45 : 0.7)) }
         }
     }
 
@@ -118,7 +118,7 @@ struct BreakView: View {
                     .font(settings.subtitleFont.font(30)).foregroundStyle(Theme.ink(0.8))
                     .multilineTextAlignment(.center).lineLimit(3)
                 Rectangle().fill(Theme.ink(0.25)).frame(width: 400, height: 1).padding(.vertical, 22)
-                timerText
+                timerText()
             }
             .frame(maxWidth: 1100).padding(.horizontal, 60)
             Spacer()
@@ -130,7 +130,7 @@ struct BreakView: View {
     private var editorial: some View {
         ZStack {
             VStack(alignment: .trailing, spacing: 6) {
-                timerText.font(settings.timerFont.font(88)).foregroundStyle(Theme.ink(0.9))
+                timerText(88, opacity: 0.9)
                 if settings.showClock { clockLine.font(settings.subtitleFont.font(18)).foregroundStyle(Theme.ink(0.6)) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).padding(70)
@@ -149,9 +149,43 @@ struct BreakView: View {
         }
     }
 
+    /// Sun: copy on top, the countdown inside a soft glowing circle that gently breathes, controls below.
+    private var sun: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 70) }
+            Spacer()
+            VStack(spacing: 18) {
+                Text(copy.title)
+                    .font(settings.titleFont.font(64)).foregroundStyle(Theme.ink)
+                    .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center)
+                Text(copy.subtitle)
+                    .font(settings.subtitleFont.font(26)).foregroundStyle(Theme.ink(0.75))
+                    .multilineTextAlignment(.center).lineLimit(3)
+            }
+            .frame(maxWidth: 900).padding(.horizontal, 60)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                let t = reduce ? 0 : ctx.date.timeIntervalSinceReferenceDate
+                let breathe = 1 + 0.035 * sin(t * 2 * .pi / 6)      // 6s in/out
+                ZStack {
+                    Circle().fill(Color.white.opacity(0.28)).frame(width: 380, height: 380).scaleEffect(breathe * 1.06)
+                    Circle().fill(Color.white.opacity(0.5)).frame(width: 300, height: 300).scaleEffect(breathe)
+                    timerText(72, opacity: 1)
+                }
+            }
+            .padding(.top, 34)
+            Spacer()
+            controls.padding(.bottom, 56)
+        }
+    }
+
     var body: some View {
         Group {
-            if Theme.style.breakLayout == .editorial { editorial } else { centered }
+            switch Theme.style.breakLayout {
+            case .editorial: editorial
+            case .sun: sun
+            case .centered: centered
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background { Backdrop(theme: settings.theme, image: image) }

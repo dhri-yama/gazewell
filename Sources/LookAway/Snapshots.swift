@@ -44,7 +44,7 @@ enum Snapshots {
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
         // Direction comparison: every surface once per style.
-        let presetFor: [String: Int] = ["Aurora": 4, "Paper glass": 0, "Mono focus": 3]
+        let presetFor: [String: Int] = ["Headspace": 4, "Paper glass": 0, "Mono focus": 3]
         for style in Style.all {
             Theme.style = style
             let slug = style.name.lowercased().replacingOccurrences(of: " ", with: "-")
@@ -66,7 +66,7 @@ enum Snapshots {
             shot("cmp-\(slug)-settings", SettingsView(store: store, stats: stats, nav: nav2, height: 1000)
                  .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 960, height: 1000))
         }
-        Theme.style = Style.aurora
+        Theme.style = Style.headspace
         let nav = SettingsNav()
         for pane in Pane.allCases {
             nav.pane = pane
