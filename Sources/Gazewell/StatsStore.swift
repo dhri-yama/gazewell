@@ -5,8 +5,10 @@ final class StatsStore: ObservableObject {
     private static let key = "stats.v1"
     @Published private(set) var stats: Stats
 
-    init() {
+    /// `preset` supplies fixed data (used by the screenshot harness so it never shows or touches real stats).
+    init(preset: Stats? = nil) {
         SettingsStore.migrateLegacyDefaults()   // StatsStore is built before SettingsStore
+        if let preset { stats = preset; return }
         stats = UserDefaults.standard.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(Stats.self, from: $0) } ?? Stats()
     }
 

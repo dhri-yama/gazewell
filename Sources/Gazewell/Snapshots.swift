@@ -22,7 +22,11 @@ enum Snapshots {
         print("probe inCall=\(Blockers.inCall) display=\(Blockers.displayKeptAwake) idle=\(Int(Blockers.idleSeconds))")
         let sched = BreakScheduler()
         let store = SettingsStore(scheduler: sched)
-        let stats = StatsStore()
+        var demo = Stats()
+        for _ in 0..<3 { demo.record(.taken) }
+        demo.record(.skipped)
+        demo.record(.taken, on: Calendar.current.date(byAdding: .day, value: -1, to: Date())!)
+        let stats = StatsStore(preset: demo)
         sched.startBreak()
         for theme in [BreakTheme.olive, .ocean] {
             var s = store.settings; s.theme = theme
@@ -40,7 +44,7 @@ enum Snapshots {
         shot("headsup", HeadsUpCard(scheduler: hu, canSnooze: true).padding(20).background(Color.gray), CGSize(width: 500, height: 190))
         shot("pill", CursorPill(scheduler: hu).padding(20).background(Color.gray), CGSize(width: 260, height: 60))
         for (i, n) in Nudge.defaults.enumerated() {
-            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 1.0, 2.2, 1.6][i])).background(Color.gray), CGSize(width: 1440, height: 900))
+            shot("nudge-\(n.id)", NudgeView(nudge: n, start: Date().addingTimeInterval(-[1.2, 0.3, 2.2, 1.6][i])).background(Color.gray), CGSize(width: 1440, height: 900))
         }
         shot("menu", MenuPopover(scheduler: hu, store: store, stats: stats).background(Color(white: 0.22)), CGSize(width: 360, height: 420))
         // A break 14s in, so tree-growth layouts show a mid-growth state.
@@ -61,7 +65,7 @@ enum Snapshots {
             shot("cmp-\(slug)-menu", MenuPopover(scheduler: hu, store: store, stats: stats)
                  .background(Theme.style.dark ? Color(white: 0.22) : Color(white: 0.9)), CGSize(width: 360, height: 420))
             for (j, n) in Nudge.defaults.enumerated() {
-                shot("cmp-\(slug)-nudge-\(n.id)", NudgeView(nudge: n, font: s.subtitleFont, start: Date().addingTimeInterval(-[1.2, 1.0, 2.2, 1.6][j]))
+                shot("cmp-\(slug)-nudge-\(n.id)", NudgeView(nudge: n, font: s.subtitleFont, start: Date().addingTimeInterval(-[1.2, 0.3, 2.2, 1.6][j]))
                      .background(Color(white: 0.2)), CGSize(width: 1440, height: 900))
             }
             let nav3 = SettingsNav(); nav3.pane = .general

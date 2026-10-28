@@ -6,6 +6,9 @@ MINOR for new features, PATCH for fixes.
 
 ## [Unreleased]
 
+### Changed
+- README now has screenshots of the themes, settings, menu, heads-up card and reminders.
+
 ## [1.0.0] - 2026-10-28
 
 First release, under the name Gazewell (previously a working title).
