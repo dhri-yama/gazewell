@@ -6,9 +6,6 @@ MINOR for new features, PATCH for fixes.
 
 ## [Unreleased]
 
-### Changed
-- README now has screenshots of the themes, settings, menu, heads-up card and reminders.
-
 ## [1.0.0] - 2026-10-28
 
 First release, under the name Gazewell (previously a working title).
@@ -23,3 +20,5 @@ First release, under the name Gazewell (previously a working title).
 - Per-role fonts, sounds with volume, custom messages, break-screen backgrounds, stats with streaks.
 - Settings window with a top toolbar and flat list layout; master on/off switch.
 - Settings and stats from earlier builds (bundle id local.lookaway) are carried over on first launch.
+- Universal binary (Apple silicon and Intel), DMG installer, Homebrew tap (`dhri-yama/tap`) and GitHub release.
+- README screenshots of the themes, settings, menu, heads-up card and reminders.

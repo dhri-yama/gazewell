@@ -1,12 +1,13 @@
 #!/bin/sh
-# Builds a release binary and wraps it into Gazewell.app (menu bar only, ad-hoc signed).
+# Builds a universal (Apple silicon + Intel) release binary and wraps it into Gazewell.app (menu bar only, ad-hoc signed).
 # The version comes from the VERSION file. Usage: ./bundle.sh && open Gazewell.app
 set -e
 cd "$(dirname "$0")"
 VERSION="$(tr -d '[:space:]' < VERSION)"
 BUILD="$(git rev-list --count HEAD 2>/dev/null || echo 1)"
-swift build -c release
-BIN="$(swift build -c release --show-bin-path)/Gazewell"
+ARCHS="--arch arm64 --arch x86_64"
+swift build -c release $ARCHS
+BIN="$(swift build -c release $ARCHS --show-bin-path)/Gazewell"
 rm -rf Gazewell.app
 mkdir -p Gazewell.app/Contents/MacOS
 cp "$BIN" Gazewell.app/Contents/MacOS/Gazewell

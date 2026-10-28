@@ -57,6 +57,12 @@ Gentle animations in your theme, never a full break: rain for water, rising chev
 - Seven themes (Forest, Earth, Ocean, Air, Night sky, Medito, Mono focus), per-role fonts, sounds, custom messages and backgrounds
 - Stats and streaks, global shortcuts, Shortcuts/AppleScript hooks, launch at login
 
+## Install
+- **Homebrew:** `brew install --cask dhri-yama/tap/gazewell`
+- **DMG:** download `Gazewell-<version>.dmg` from the [latest release](https://github.com/dhri-yama/gazewell/releases/latest), open it and drag Gazewell to Applications.
+
+Gazewell is ad-hoc signed, not notarized, so macOS may block the first launch of the DMG copy: open System Settings → Privacy & Security and choose **Open Anyway**. The Homebrew install clears that flag for you. Requires macOS 13 or later; runs natively on Apple silicon and Intel.
+
 ## Build
 Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
 
@@ -68,11 +74,10 @@ Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
 
 Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip next, ⌃⌥P turn breaks off/on.
 
-The app is ad-hoc signed, not notarized: on first launch right-click → Open.
 
 ## Versioning
 Gazewell follows [Semantic Versioning](https://semver.org/). The single source of truth is the `VERSION` file; `bundle.sh` stamps it into the app, so it shows in Settings → About.
 
 - Note changes under `## [Unreleased]` in [CHANGELOG.md](CHANGELOG.md) as you work.
 - Cut a release with `./release.sh patch|minor|major`. It bumps `VERSION`, dates the changelog section, commits and tags `vX.Y.Z`.
-- Then `git push && git push --tags`.
+- Then `git push && git push --tags`, and `./publish.sh` to build the DMG and create the GitHub release. It prints the sha256; put the new version and sha256 in the Homebrew cask (`Casks/gazewell.rb` in [homebrew-tap](https://github.com/dhri-yama/homebrew-tap)).
