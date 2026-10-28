@@ -52,6 +52,68 @@ private struct TreeView: View {
     }
 }
 
+/// Crescent moon travelling along a dotted arc from one horizon to the other as `progress` goes 0...1.
+private struct MoonSky: View {
+    var progress: Double
+    var body: some View {
+        let p = min(max(progress, 0), 1)
+        Canvas { ctx, size in
+            func point(_ t: Double) -> CGPoint {
+                CGPoint(x: size.width / 2 + (t - 0.5) * (size.width - 140), y: size.height - 50 - sin(.pi * t) * (size.height - 110))
+            }
+            var arc = Path()
+            arc.move(to: point(0))
+            for i in 1...60 { arc.addLine(to: point(Double(i) / 60)) }
+            ctx.stroke(arc, with: .color(Theme.ink(0.18)), style: StrokeStyle(lineWidth: 1.5, dash: [2, 8]))
+            let c = point(p)
+            ctx.fill(Path(ellipseIn: CGRect(x: c.x - 90, y: c.y - 90, width: 180, height: 180)),
+                     with: .radialGradient(Gradient(colors: [Color(red: 1, green: 0.93, blue: 0.7).opacity(0.35), .clear]),
+                                           center: c, startRadius: 0, endRadius: 90))
+            ctx.drawLayer { l in
+                l.fill(Path(ellipseIn: CGRect(x: c.x - 40, y: c.y - 40, width: 80, height: 80)), with: .color(Color(red: 1, green: 0.94, blue: 0.76)))
+                l.blendMode = .clear
+                l.fill(Path(ellipseIn: CGRect(x: c.x - 24, y: c.y - 46, width: 74, height: 74)), with: .color(.black))
+            }
+        }
+        .frame(width: 640, height: 300)
+        .accessibilityHidden(true)
+    }
+}
+
+/// A circle that fills with two rolling waves as `progress` goes 0...1.
+private struct WaterOrb: View {
+    var progress: Double
+    var time: Double
+    var body: some View {
+        let p = min(max(progress, 0), 1)
+        Canvas { ctx, size in
+            let rect = CGRect(x: 10, y: 10, width: size.width - 20, height: size.height - 20)
+            let orb = Path(ellipseIn: rect)
+            ctx.fill(orb, with: .color(Theme.ink(0.07)))
+            ctx.drawLayer { l in
+                l.clip(to: orb)
+                let level = rect.maxY - rect.height * (0.06 + 0.94 * p)
+                for (i, color) in [Theme.hex(0x2CC6C8, 0.65), Theme.hex(0x1389B8, 0.85)].enumerated() {
+                    var wave = Path()
+                    wave.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+                    var x = rect.minX
+                    while x <= rect.maxX {
+                        let phase = time * (i == 0 ? 0.9 : -1.3) + Double(i) * 1.8
+                        wave.addLine(to: CGPoint(x: x, y: level + sin((x - rect.minX) / rect.width * 2 * .pi * 1.4 + phase) * (i == 0 ? 9 : 7) + CGFloat(i) * 7))
+                        x += 4
+                    }
+                    wave.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+                    wave.closeSubpath()
+                    l.fill(wave, with: .color(color))
+                }
+            }
+            ctx.stroke(orb, with: .color(Theme.ink(0.3)), lineWidth: 3)
+        }
+        .frame(width: 380, height: 380)
+        .accessibilityHidden(true)
+    }
+}
+
 private struct Pill: View {
     var title: String
     var symbol: String?
@@ -285,9 +347,55 @@ struct BreakView: View {
         }
     }
 
+    /// Night: the moon crosses a starry sky over the break; countdown beneath.
+    private var night: some View {
+        let progress = Double(scheduler.elapsed) / Double(max(1, scheduler.breakLength))
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 70) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(58)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.78))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 12)
+            MoonSky(progress: progress).padding(.top, 20)
+            timerText(56, opacity: 0.9)
+            Spacer()
+            controls.padding(.bottom, 56)
+        }
+    }
+
+    /// Ocean: water rises in a circle through the break with the countdown floating on it.
+    private var ocean: some View {
+        let reduce = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        let progress = Double(scheduler.elapsed) / Double(max(1, scheduler.breakLength))
+        return VStack(spacing: 0) {
+            if settings.showClock { clockLine.padding(.top, 60) }
+            Spacer()
+            Text(copy.title)
+                .font(settings.titleFont.font(58)).foregroundStyle(Theme.ink)
+                .lineLimit(2).minimumScaleFactor(0.5).multilineTextAlignment(.center).padding(.horizontal, 60)
+            Text(copy.subtitle)
+                .font(settings.subtitleFont.font(24)).foregroundStyle(Theme.ink(0.8))
+                .multilineTextAlignment(.center).lineLimit(2).frame(maxWidth: 820).padding(.top, 12)
+            TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduce)) { ctx in
+                ZStack {
+                    WaterOrb(progress: progress, time: reduce ? 0 : ctx.date.timeIntervalSinceReferenceDate)
+                    timerText(68, opacity: 1).shadow(color: .black.opacity(0.25), radius: 6, y: 2)
+                }
+            }
+            .padding(.top, 24)
+            Spacer()
+            controls.padding(.bottom, 52)
+        }
+    }
+
     var body: some View {
         Group {
             switch Theme.style.breakLayout {
+            case .night: night
+            case .ocean: ocean
             case .breathe: breathe
             case .forest: forest
             case .editorial: editorial

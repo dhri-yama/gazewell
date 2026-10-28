@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-enum BreakLayout { case centered, editorial, sun, forest, breathe }
+enum BreakLayout { case centered, editorial, sun, forest, breathe, night, ocean }
 
 /// Everything that makes one visual direction different from another. Views read `Theme`, which reads `Theme.style`.
 struct Style {
@@ -28,6 +28,7 @@ struct Style {
     var glyphInk: UInt32              // arrow / eyes drawn on the disc
     var cardFill: Color? = nil        // solid-ish card colour; nil = a tint of `ink`
     var onAccent: Color = .white      // text on accent-coloured buttons
+    var stars = false                 // twinkling starfield on the signature break backdrop
 }
 
 extension Style {
@@ -65,6 +66,26 @@ extension Style {
         cardSolid: hex(0x0E1536, 0.94), breakLayout: .breathe, glyph: [0xFFE08A, 0xF2C14E], glyphInk: 0x2B2000,
         onAccent: hex(0x1B1500))
 
+    /// Black-violet sky with twinkling stars and a crescent moon that crosses the sky as the break passes.
+    static let night = Style(
+        name: "Night sky", dark: true, ink: hex(0xEAF0FF), veil: hex(0x03040F, 0.55), sidebar: hex(0x02030B, 0.45),
+        cardOpacity: 0.07, strokeOpacity: 0.12, hairlineOpacity: 0.1, accent: hex(0xB7A8FF),
+        glowA: hex(0x2B1B6B, 0.55), glowB: hex(0x1B3A8A, 0.35),
+        backdrop: (hex(0x04030F), [hex(0x1B1148), hex(0x2D1B69), hex(0x0F1A4A), hex(0x3A1F6E)]),
+        tileOverride: [0x8B7BFF, 0x4A3BC4], cardRadius: 20, controlRadius: 12, displayDesign: .serif, material: .hudWindow,
+        cardSolid: hex(0x0B0A22, 0.94), breakLayout: .night, glyph: [0xD6CCFF, 0x8B7BFF], glyphInk: 0x1A1040,
+        onAccent: hex(0x0B0820), stars: true)
+
+    /// Deep teal water with aqua light; the break fills a circle with rolling waves.
+    static let ocean = Style(
+        name: "Ocean", dark: true, ink: hex(0xF2FAFF), veil: hex(0x03283A, 0.42), sidebar: hex(0x021E2C, 0.38),
+        cardOpacity: 0.09, strokeOpacity: 0.14, hairlineOpacity: 0.11, accent: hex(0x4DE1D2),
+        glowA: hex(0x1CA3C6, 0.55), glowB: hex(0x7FF0E0, 0.25),
+        backdrop: (hex(0x06394F), [hex(0x0F7FA8), hex(0x2CC6C8), hex(0x0B5A86), hex(0x66DDE0)]),
+        tileOverride: [0x47D6D0, 0x1389B8], cardRadius: 24, controlRadius: 14, displayDesign: .rounded, material: .hudWindow,
+        cardSolid: hex(0x08455F, 0.94), breakLayout: .ocean, glyph: [0x9AF0E6, 0x2CC6C8], glyphInk: 0x02323F,
+        onAccent: hex(0x03283A))
+
     /// Light frosted paper over soft pastel light, dark ink, serif headings.
     static let paper = Style(
         name: "Paper glass", dark: false, ink: hex(0x1C1B22), veil: hex(0xFFF7EE, 0.45), sidebar: hex(0xFFFFFF, 0.28),
@@ -84,7 +105,7 @@ extension Style {
         cardSolid: hex(0x14161A, 0.92), breakLayout: .editorial, glyph: [0xC8F560, 0x9BD33A], glyphInk: 0x10130A,
         onAccent: hex(0x10130A))
 
-    static let all = [headspace, forest, medito, paper, mono]
+    static let all = [headspace, forest, ocean, night, medito, paper, mono]
     static func named(_ n: String) -> Style { all.first { $0.name == n } ?? headspace }
 }
 

@@ -55,7 +55,7 @@ struct GeneralPane: View {
     var body: some View {
         Block(title: "Theme") {
             Card {
-                HStack(alignment: .top, spacing: 14) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 118), spacing: 14, alignment: .top)], spacing: 16) {
                     ForEach(Style.all, id: \.name) { st in
                         StyleTile(style: st, selected: store.settings.appStyle == st.name) { store.settings.appStyle = st.name }
                     }
