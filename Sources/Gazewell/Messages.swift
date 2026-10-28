@@ -1,5 +1,5 @@
 import Foundation
-import LookAwayCore
+import GazewellCore
 
 struct BreakCopy: Equatable {
     var title: String

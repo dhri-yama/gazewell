@@ -1,6 +1,6 @@
 import Foundation
 import Combine
-import LookAwayCore
+import GazewellCore
 
 /// Runs a user's Shortcut or AppleScript file when a break starts or ends.
 final class Hooks {

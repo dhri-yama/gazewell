@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
-import LookAwayCore
+import GazewellCore
 
 struct HeadsUpCard: View {
     @ObservedObject var scheduler: BreakScheduler

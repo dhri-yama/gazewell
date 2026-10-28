@@ -1,11 +1,12 @@
 import Foundation
-import LookAwayCore
+import GazewellCore
 
 final class StatsStore: ObservableObject {
     private static let key = "stats.v1"
     @Published private(set) var stats: Stats
 
     init() {
+        SettingsStore.migrateLegacyDefaults()   // StatsStore is built before SettingsStore
         stats = UserDefaults.standard.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(Stats.self, from: $0) } ?? Stats()
     }
 

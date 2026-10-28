@@ -16,19 +16,19 @@ Anyone who sits at a desk all day (confirmed). Sees the app mid-work, usually in
 
 ## Product Purpose
 
-Personal-use clone of lookaway.com: a menu bar app that reminds the user to rest eyes, fix posture and blink, timed around natural pauses. Success: breaks actually get taken and the app is never annoying enough to be quit.
+Gazewell: a menu bar app that reminds the user to rest eyes, fix posture and blink, timed around natural pauses. Success: breaks actually get taken and the app is never annoying enough to be quit.
 
 ## Capabilities and Constraints
 
-Full parity with lookaway.com minus iOS sync, Live Activities, App Store/Setapp. Heads-up before break (start now / +1 / +5 / +15), cursor-following countdown, smart auto-pause (calls, screen recording, video, fullscreen games, Focus), planned breaks, custom messages/backgrounds/sounds, global hotkeys, AppleScript/Shortcuts hooks, launch at login.
+Eye-break reminders with no iOS sync, Live Activities or App Store release. Heads-up before break (start now / +1 / +5 / +15), cursor-following countdown, smart auto-pause (calls, screen recording, video, fullscreen games, Focus), planned breaks, custom messages/backgrounds/sounds, global hotkeys, AppleScript/Shortcuts hooks, launch at login.
 
 ## Brand Commitments
 
-Faithful to the real LookAway look (user supplied reference screenshots, revision 2). Calm, wellness tone. Name: LookAway (working title).
+Name: Gazewell. Calm, wellness tone; its own look (seven switchable themes), no third-party logos or assets.
 
 ## Evidence on Hand
 
-Only the public lookaway.com feature list. No logos, screenshots or testimonials to reuse.
+No logos, screenshots or testimonials to reuse.
 
 ## Product Principles
 

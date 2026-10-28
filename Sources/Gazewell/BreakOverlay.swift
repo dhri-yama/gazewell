@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
-import LookAwayCore
+import GazewellCore
 
 /// Borderless window that can take key focus so Esc works.
 private final class OverlayWindow: NSWindow {

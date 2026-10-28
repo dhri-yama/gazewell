@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 import UniformTypeIdentifiers
-import LookAwayCore
+import GazewellCore
 
 // MARK: General
 
@@ -66,11 +66,11 @@ struct GeneralPane: View {
         }
         Block {
         Card {
-            ToggleRow(title: "Enable LookAway", subtitle: "Turn off to stop all breaks, heads-ups and reminders. Your settings are kept.",
+            ToggleRow(title: "Enable Gazewell", subtitle: "Turn off to stop all breaks, heads-ups and reminders. Your settings are kept.",
                       symbol: "power", isOn: $store.settings.enabled)
         }
         Card {
-            ToggleRow(title: "Open at login", subtitle: "Works when running the bundled LookAway.app", symbol: "arrow.right.circle.fill", isOn: $store.launchAtLogin)
+            ToggleRow(title: "Open at login", subtitle: "Works when running the bundled Gazewell.app", symbol: "arrow.right.circle.fill", isOn: $store.launchAtLogin)
             Sep()
             ToggleRow(title: "Show time in the menu bar", subtitle: "Countdown to your next break next to the icon", symbol: "menubar.rectangle",
                       isOn: $store.settings.showTimeInMenuBar)
@@ -359,7 +359,7 @@ struct SmartPausePane: View {
     @ObservedObject var store: SettingsStore
     var body: some View {
         Block {
-        Note("Breaks stay out of your way. LookAway holds the break back while any of these is happening.")
+        Note("Breaks stay out of your way. Gazewell holds the break back while any of these is happening.")
         Card {
             ToggleRow(title: "Calls and meetings", subtitle: "Microphone or camera in use", symbol: "phone.fill", isOn: $store.settings.pauseForCalls)
             if store.settings.pauseForCalls {
@@ -574,14 +574,19 @@ struct AutomationPane: View {
 
 // MARK: About
 
+/// The release version, stamped into Info.plist from the VERSION file by bundle.sh ("dev" when run unbundled).
+enum AppVersion {
+    static var string: String { (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "dev" }
+}
+
 struct AboutPane: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(Theme.onAccent)
                 .frame(width: 84, height: 84).background(Theme.accent, in: RoundedRectangle(cornerRadius: 20))
-            Text("OpenLookAway").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
-            Text("Version 0.2").font(.system(size: 13)).foregroundStyle(Theme.textDim)
-            Text("A personal clone of the LookAway break reminder for macOS. Not affiliated with LookAway.")
+            Text("Gazewell").font(Theme.display(24, .bold)).foregroundStyle(Theme.ink)
+            Text("Version \(AppVersion.string)").font(.system(size: 13)).foregroundStyle(Theme.textDim)
+            Text("A break reminder for healthier eyes: smart eye breaks, wellness reminders and call-aware pausing. An independent open-source project, not affiliated with any other break-reminder app.")
                 .font(.system(size: 13)).foregroundStyle(Theme.textDim).multilineTextAlignment(.center).frame(maxWidth: 360)
         }
         .frame(maxWidth: .infinity).padding(.top, 40)

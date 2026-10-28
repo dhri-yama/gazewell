@@ -2,11 +2,11 @@
 import PackageDescription
 
 let package = Package(
-    name: "LookAway",
+    name: "Gazewell",
     platforms: [.macOS(.v13)],
     targets: [
-        .target(name: "LookAwayCore", path: "Sources/LookAwayCore"),
-        .executableTarget(name: "LookAway", dependencies: ["LookAwayCore"], path: "Sources/LookAway"),
-        .testTarget(name: "LookAwayTests", dependencies: ["LookAwayCore"], path: "Tests/LookAwayTests"),
+        .target(name: "GazewellCore", path: "Sources/GazewellCore"),
+        .executableTarget(name: "Gazewell", dependencies: ["GazewellCore"], path: "Sources/Gazewell"),
+        .testTarget(name: "GazewellTests", dependencies: ["GazewellCore"], path: "Tests/GazewellTests"),
     ]
 )

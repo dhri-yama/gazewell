@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import LookAwayCore
+import GazewellCore
 
 extension AppSettings {
     /// Whether Skip/End break is available this far into a break, per the enforcement level.

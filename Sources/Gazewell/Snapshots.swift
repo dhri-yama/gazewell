@@ -1,8 +1,8 @@
 import SwiftUI
 import AppKit
-import LookAwayCore
+import GazewellCore
 
-/// `LookAway --snapshot <dir>` renders the main screens to PNGs and exits. Used to review the UI without screen-recording permission.
+/// `Gazewell --snapshot <dir>` renders the main screens to PNGs and exits. Used to review the UI without screen-recording permission.
 enum Snapshots {
     static func run(into dir: String) {
         _ = NSApplication.shared

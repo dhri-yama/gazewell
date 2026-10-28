@@ -1,6 +1,6 @@
 import Testing
 import Foundation
-@testable import LookAwayCore
+@testable import GazewellCore
 
 private func rule(_ kind: BreakRule.Kind, _ interval: TimeInterval, _ duration: TimeInterval, enabled: Bool = true) -> BreakRule {
     BreakRule(kind: kind, interval: interval, duration: duration, enabled: enabled, message: "")

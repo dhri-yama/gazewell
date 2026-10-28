@@ -1,6 +1,6 @@
 import AppKit
 import SwiftUI
-import LookAwayCore
+import GazewellCore
 
 /// A wellness reminder as a full-screen scene: the theme's backdrop, one animation across the whole screen that depends on the
 /// reminder (rain, rising chevrons, eyelids, silk ribbons), and the message. Animation colours come from the active theme.

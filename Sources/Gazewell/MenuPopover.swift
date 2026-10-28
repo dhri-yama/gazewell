@@ -1,6 +1,6 @@
 import SwiftUI
 import AppKit
-import LookAwayCore
+import GazewellCore
 
 /// Hover state for a row. An object rather than @State so it builds on toolchains without SwiftUI's macro plugin.
 private final class HoverModel: ObservableObject { @Published var on = false }
@@ -54,7 +54,7 @@ struct MenuPopover: View {
     private var off: Bool { !store.settings.enabled }
 
     private var heading: String {
-        if off { return "LookAway is off" }
+        if off { return "Gazewell is off" }
         if paused { return "Breaks are paused" }
         if !scheduler.hasUpcoming { return "No breaks scheduled" }
         switch scheduler.phase {
@@ -100,7 +100,7 @@ struct MenuPopover: View {
             Rectangle().fill(Theme.ink(0.1)).frame(height: 1)
             VStack(spacing: 2) {
                 if off {
-                    RowButton(title: "Turn LookAway on", symbol: "power", shortcut: "⌃⌥P") { store.settings.enabled = true }
+                    RowButton(title: "Turn Gazewell on", symbol: "power", shortcut: "⌃⌥P") { store.settings.enabled = true }
                 } else {
                 RowButton(title: "Start break now", symbol: "play.fill", shortcut: "⌃⌥B") { dismissPopover(); scheduler.startBreak() }
                 RowButton(title: "Skip next break", symbol: "forward.fill", shortcut: "⌃⌥S") { dismissPopover(); scheduler.endBreak() }
@@ -123,7 +123,7 @@ struct MenuPopover: View {
             VStack(spacing: 2) {
                 RowButton(title: "Settings…", symbol: "gearshape", shortcut: "⌘,") { dismissPopover(); SettingsWindow.show(store: store, stats: stats) }
                     .keyboardShortcut(",")
-                RowButton(title: "Quit LookAway", symbol: "power", shortcut: "⌘Q") { NSApp.terminate(nil) }
+                RowButton(title: "Quit Gazewell", symbol: "power", shortcut: "⌘Q") { NSApp.terminate(nil) }
                     .keyboardShortcut("q")
             }
             .padding(10)

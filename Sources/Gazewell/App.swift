@@ -1,6 +1,6 @@
 import SwiftUI
 import Carbon.HIToolbox
-import LookAwayCore
+import GazewellCore
 
 /// Owns long-lived objects so timers and overlays exist from launch, not from first menu open.
 final class AppModel {
@@ -53,7 +53,7 @@ final class AppModel {
 }
 
 @main
-struct LookAwayApp: App {
+struct GazewellApp: App {
     @ObservedObject private var scheduler = AppModel.shared.scheduler
     @ObservedObject private var store = AppModel.shared.store
 

@@ -1,5 +1,5 @@
 import Combine
-import LookAwayCore
+import GazewellCore
 
 extension BreakScheduler {
     /// Calls `start` when a break begins and `end` when it finishes or is skipped. Heads-up changes are ignored.

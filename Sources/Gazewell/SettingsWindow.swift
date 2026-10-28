@@ -26,7 +26,7 @@ enum SettingsWindow {
             ])
             let w = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 880, height: 720), styleMask: [.titled, .closable, .miniaturizable, .fullSizeContentView], backing: .buffered, defer: false)
             w.contentView = blur
-            w.title = "LookAway Settings"
+            w.title = "Gazewell Settings"
             w.titlebarAppearsTransparent = true
             w.titleVisibility = .hidden
             w.appearance = Theme.appearance

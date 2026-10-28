@@ -1,6 +1,6 @@
 import AppKit
 import Combine
-import LookAwayCore
+import GazewellCore
 
 /// Plays the chosen sounds when a break starts and ends.
 final class Chime {

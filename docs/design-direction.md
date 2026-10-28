@@ -1,35 +1,18 @@
-# Design direction (revision 2: match real LookAway)
+# Design direction
 
-The user supplied LookAway reference screenshots and asked for the same look plus more features. This replaces the earlier "Dusk window" direction. Brand commitment in PRODUCT.md changes from "custom branded" to "faithful to LookAway's look".
+Gazewell's look is a set of switchable themes on one blurred-glass foundation. Calm and gentle: it should never feel like an alarm.
 
-Mode: Operate (settings, menu, heads-up) + one Experience moment (break screen).
+## Themes
+Forest, Earth, Ocean, Air, Night sky, Medito, Mono focus. A theme is a `Style` value in `Theme.swift` (ink, veil, accent, glows, backdrop palette, radii, display font design, material, break layout). Views read `Theme`; nothing else hard-codes colours. Picking a theme in Settings → General restyles every surface live.
 
-## Break screen
-- Full screen, dark blurred organic backdrop: soft colour blobs (default olive/amber on near-black) drifting slowly; static under Reduce Motion.
-- Top: "Current time is HH:MM" (small, dim, time in brighter weight).
-- Centre stack: big bold title ("Catch a quick rest"), regular subtitle, 400pt hairline divider, dim `mm:ss` countdown.
-- Bottom: pills **Skip** (icon `forward` / progress ring while locked) and **Lock Screen**, then "Press Esc twice to skip".
-- Enforcement: Casual (skip anytime), Balanced (Skip unlocks after 5s), Hardcore (no skip; End break only near the end if allowed).
-- No breathing ring, no coral accent.
+## Surfaces
+- **Break screen:** the theme's backdrop plus a scene that advances with the break: a growing tree (Forest), stacking stones (Earth), rising water (Ocean), blowing dandelion seeds (Air), a moon crossing the sky (Night sky), a breathing ring (Medito), a large editorial title (Mono focus). Skip / Lock Screen pills, "Press Esc twice" hint, enforcement-aware.
+- **Heads-up card:** timer, one line of copy, Start break now and +1m / +5m / +15m; a pill follows the cursor.
+- **Wellness reminders:** full-screen scenes on the theme backdrop: rain (hydration), rising chevrons (posture), eyelids (blink), silk ribbons (stretch); message in the centre.
+- **Menu popover:** blurred glass, countdown and progress, plain menu rows.
+- **Settings:** a toolbar of tabs across the top, a large page title with a one-line description, and a flat list of rows separated by hairlines (no boxes, no sidebar).
 
-## Heads-up card
-Dark translucent rounded card: timer icon tile, bold `00:40`, line "Almost time. Your eyes will appreciate this.", then orange pill **Start break now** and outline pills **+1m +5m +15m**. Cursor-following pill: leaf icon + "Short break in 5".
-
-## Wellness nudges
-Small toast, top centre, icon + one line, auto-dismiss.
-
-## Settings window
-Dark, sidebar + detail (not tabs). Sidebar groups: General · Focus & Wellbeing (Screen Breaks, Smart Pause, Wellness Reminders, Stats) · Behavior & Feedback (Alerts / Nudges, Sounds, Keyboard Shortcuts) · Integrations (Automation) · LookAway (About). Each item has a rounded-square gradient icon tile with a white SF symbol. Detail: title with tile, section headers, rounded grouped cards of rows (label left, control right, hairline dividers). Enforcement shown as three selectable preview tiles.
-
-## Menu bar
-Popover (window style): header with next-break countdown and elapsed bar, action row (Start break, Skip next, Pause), then Settings and Quit. Optional time in the menu bar title.
-
-## Tokens (Theme.swift)
-- Window bg #171826, sidebar #1D1E30, card #252739, hairline white 8%, text white / white 60%.
-- Olive blobs #8C8446, #5A5A32, base #141A14. Other themes: Dusk, Ocean, Rose, Slate.
-- Accent orange #FF6B2C (Start break now), toggle blue system.
-- Sidebar tile gradients: pink/magenta, red/orange, orange/yellow, yellow.
-- Type: SF Pro Rounded not used; title 64 bold, subtitle 28 regular, countdown 64 semibold dim.
-
-## Anti-goals
-No confetti, no streak guilt copy, no emoji.
+## Rules
+- Text over blur or imagery keeps 4.5:1 contrast; photos get a dark scrim.
+- Respect Reduce Motion everywhere (scenes hold a still frame); animation is time-driven, not state-driven.
+- Controls share one height (30pt) so rows line up; all features stay reachable from Settings.

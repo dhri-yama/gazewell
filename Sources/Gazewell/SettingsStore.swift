@@ -3,7 +3,7 @@ import SwiftUI
 import AppKit
 import Combine
 import ServiceManagement
-import LookAwayCore
+import GazewellCore
 
 enum Enforcement: String, Codable, CaseIterable {
     case casual, balanced, hardcore
@@ -186,7 +186,15 @@ final class SettingsStore: ObservableObject {
         }
     }
 
+    /// The app was renamed in 1.0.0 (bundle id local.lookaway -> local.gazewell); carry settings and stats over once.
+    static func migrateLegacyDefaults() {
+        let std = UserDefaults.standard
+        guard let old = UserDefaults(suiteName: "local.lookaway") else { return }
+        for k in [key, "stats.v1"] { if std.data(forKey: k) == nil, let d = old.data(forKey: k) { std.set(d, forKey: k) } }
+    }
+
     init(scheduler: BreakScheduler) {
+        Self.migrateLegacyDefaults()
         self.scheduler = scheduler
         launchAtLogin = SMAppService.mainApp.status == .enabled
         let saved = UserDefaults.standard.data(forKey: Self.key).flatMap { try? JSONDecoder().decode(AppSettings.self, from: $0) }
