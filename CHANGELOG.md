@@ -6,6 +6,8 @@ MINOR for new features, PATCH for fixes.
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-10-28
+
 ### Added
 - Universal binary (Apple silicon and Intel), a DMG installer, a Homebrew tap (`dhri-yama/tap`) and GitHub releases via `./publish.sh`.
 - README screenshots of the themes, settings, menu, heads-up card and reminders, and install instructions.
