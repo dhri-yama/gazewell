@@ -6,6 +6,9 @@ MINOR for new features, PATCH for fixes.
 
 ## [Unreleased]
 
+### Added
+- "Buy me a coffee" button in Settings → About, and a badge in the README.
+
 ## [1.0.1] - 2026-10-28
 
 ### Added

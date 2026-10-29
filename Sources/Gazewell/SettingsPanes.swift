@@ -580,6 +580,8 @@ enum AppVersion {
 }
 
 struct AboutPane: View {
+    private static let supportURL = URL(string: "https://buymeacoffee.com/dhriyama")!
+
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: "eye.fill").font(.system(size: 36, weight: .semibold)).foregroundStyle(Theme.onAccent)
@@ -588,6 +590,12 @@ struct AboutPane: View {
             Text("Version \(AppVersion.string)").font(.system(size: 13)).foregroundStyle(Theme.textDim)
             Text("A break reminder for healthier eyes: smart eye breaks, wellness reminders and call-aware pausing. An independent open-source project, not affiliated with any other break-reminder app.")
                 .font(.system(size: 13)).foregroundStyle(Theme.textDim).multilineTextAlignment(.center).frame(maxWidth: 360)
+            Button { NSWorkspace.shared.open(Self.supportURL) } label: {
+                HStack(spacing: 8) { Image(systemName: "cup.and.saucer.fill"); Text("Buy me a coffee") }
+            }
+            .buttonStyle(ControlButton(primary: true))
+            .accessibilityHint("Opens the support page in your browser")
+            .padding(.top, 12)
         }
         .frame(maxWidth: .infinity).padding(.top, 40)
     }

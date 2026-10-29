@@ -2,6 +2,8 @@
 
 A macOS menu bar app that reminds you to rest your eyes, fix your posture and blink, timed around natural pauses. An independent open-source project, not affiliated with any other break-reminder app.
 
+[![Buy me a coffee](https://img.shields.io/badge/Buy%20me%20a%20coffee-FFDD00?logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/dhriyama)
+
 <p align="center"><img src="docs/images/hero.jpg" width="860" alt="Gazewell break screen in the Forest theme: a tree grows while the countdown runs"></p>
 
 ## Screenshots
