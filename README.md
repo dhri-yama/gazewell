@@ -82,6 +82,9 @@ Requires macOS 13+ and the Swift toolchain (Command Line Tools are enough).
 Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip next, ⌃⌥P turn breaks off/on.
 
 
+## Website
+The marketing site lives in [`website/`](website) (Next.js and Tailwind, static export). It is separate from the app: the DMG and the app bundle contain only the compiled Swift code.
+
 ## Versioning
 Gazewell follows [Semantic Versioning](https://semver.org/). The single source of truth is the `VERSION` file; `bundle.sh` stamps it into the app, so it shows in Settings → About.
 

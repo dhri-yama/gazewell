@@ -7,6 +7,7 @@ MINOR for new features, PATCH for fixes.
 ## [Unreleased]
 
 ### Added
+- Marketing website in `website/` (Next.js and Tailwind), themed like the app. It is not part of the app or the DMG.
 - "Buy me a coffee" button in Settings → About, and a badge in the README.
 
 ## [1.0.1] - 2026-10-28

@@ -1,0 +1,156 @@
+@import "tailwindcss";
+
+/* ---- Theme tokens ----------------------------------------------------------------------------
+   Applied to <html data-theme="…"> for the page, and to .theme-… so a swatch can preview its own
+   theme while the page shows another. Same palettes as the macOS app's themes.                  */
+:root,
+[data-theme="forest"],
+.theme-forest {
+  --bg: #0a2e22; --b1: #1f7a4d; --b2: #4e9f5e; --b3: #145a3e; --b4: #6fa84a;
+  --ink: #f1f6e8; --accent: #6fd38a; --on-accent: #06231a;
+  --display: var(--font-nunito); color-scheme: dark;
+}
+[data-theme="earth"], .theme-earth {
+  --bg: #1b120c; --b1: #6b3f24; --b2: #8c5a35; --b3: #3e2616; --b4: #b07a45;
+  --ink: #f6eee2; --accent: #e29a63; --on-accent: #2a140a;
+  --display: var(--font-fraunces); color-scheme: dark;
+}
+[data-theme="ocean"], .theme-ocean {
+  --bg: #06394f; --b1: #0f7fa8; --b2: #2cc6c8; --b3: #0b5a86; --b4: #66dde0;
+  --ink: #f2faff; --accent: #4de1d2; --on-accent: #03283a;
+  --display: var(--font-nunito); color-scheme: dark;
+}
+[data-theme="air"], .theme-air {
+  --bg: #cfe8fa; --b1: #a9d6f5; --b2: #e8f5ff; --b3: #8fc4ee; --b4: #ffffff;
+  --ink: #1e2b3a; --accent: #1f7ae0; --on-accent: #ffffff;
+  --display: var(--font-nunito); color-scheme: light;
+}
+[data-theme="night"], .theme-night {
+  --bg: #04030f; --b1: #1b1148; --b2: #2d1b69; --b3: #0f1a4a; --b4: #3a1f6e;
+  --ink: #eaf0ff; --accent: #b7a8ff; --on-accent: #0b0820;
+  --display: var(--font-fraunces); color-scheme: dark;
+}
+[data-theme="medito"], .theme-medito {
+  --bg: #070c24; --b1: #1e2a78; --b2: #2f3c9e; --b3: #151f5c; --b4: #4b3a8a;
+  --ink: #eef1fa; --accent: #f2c14e; --on-accent: #1b1500;
+  --display: var(--font-dm); color-scheme: dark;
+}
+[data-theme="mono"], .theme-mono {
+  --bg: #0b0c0e; --b1: #2b3340; --b2: #1f242c; --b3: #3a4250; --b4: #161a20;
+  --ink: #f2f2ee; --accent: #c8f560; --on-accent: #10130a;
+  --display: var(--font-fraunces); color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-ink: var(--ink);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --font-sans: var(--font-dm), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--display), ui-serif, Georgia, serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* ---- Page ------------------------------------------------------------------------------------ */
+html { scroll-behavior: smooth; }
+body {
+  background-color: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  line-height: 1.65;
+}
+::selection { background: color-mix(in srgb, var(--accent) 45%, transparent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 6px; }
+
+/* The same soft backdrop the app draws behind its break screen: four glows that drift slowly. */
+body::before {
+  content: "";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(55% 45% at 12% 8%, color-mix(in srgb, var(--b1) 85%, transparent), transparent 70%),
+    radial-gradient(50% 45% at 90% 18%, color-mix(in srgb, var(--b2) 70%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 75% 95%, color-mix(in srgb, var(--b3) 80%, transparent), transparent 70%),
+    radial-gradient(45% 40% at 5% 85%, color-mix(in srgb, var(--b4) 55%, transparent), transparent 70%);
+  background-size: 130% 130%;
+  animation: drift 80s ease-in-out infinite alternate;
+}
+@keyframes drift { to { background-position: 100% 100%, 0 100%, 100% 0, 60% 40%; } }
+
+[data-theme="night"] body::after {
+  content: "";
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 18%, #fff, transparent), radial-gradient(1px 1px at 28% 62%, #fff, transparent),
+    radial-gradient(1.6px 1.6px at 44% 32%, #fff, transparent), radial-gradient(1px 1px at 58% 78%, #fff, transparent),
+    radial-gradient(1.4px 1.4px at 72% 14%, #fff, transparent), radial-gradient(1px 1px at 86% 52%, #fff, transparent),
+    radial-gradient(1.2px 1.2px at 93% 86%, #fff, transparent), radial-gradient(1px 1px at 6% 90%, #fff, transparent);
+  background-size: 380px 320px;
+  animation: twinkle 7s ease-in-out infinite alternate;
+}
+@keyframes twinkle { from { opacity: 0.4; } to { opacity: 0.9; } }
+
+/* ---- Theme bands and screenshots (driven by <html data-theme>, so no JavaScript state is needed) --- */
+.paint {
+  background-color: var(--bg);
+  color: var(--ink);
+  background-image:
+    radial-gradient(70% 60% at 10% 10%, color-mix(in srgb, var(--b1) 90%, transparent), transparent 70%),
+    radial-gradient(60% 55% at 95% 25%, color-mix(in srgb, var(--b2) 75%, transparent), transparent 70%),
+    radial-gradient(70% 60% at 70% 100%, color-mix(in srgb, var(--b3) 85%, transparent), transparent 70%),
+    radial-gradient(50% 45% at 0% 100%, color-mix(in srgb, var(--b4) 60%, transparent), transparent 70%);
+}
+.dot { background: linear-gradient(135deg, var(--bg) 50%, var(--accent) 50%); }
+
+.band { flex: 1 1 0; padding: 1rem; cursor: pointer; transition: flex-grow 0.6s cubic-bezier(0.2, 0.7, 0.2, 1); }
+.band-name {
+  position: absolute; left: 1rem; bottom: 1rem;
+  writing-mode: vertical-rl; transform: rotate(180deg);
+  transition: opacity 0.25s;
+}
+.band-detail {
+  position: absolute; left: 1.5rem; bottom: 1.5rem; right: 1.5rem;
+  opacity: 0; pointer-events: none; transition: opacity 0.35s 0.15s;
+}
+@media (max-width: 767px) {
+  .band-name { writing-mode: horizontal-tb; transform: none; top: 0.7rem; bottom: auto; }
+}
+
+.shot { opacity: 0; transition: opacity 0.7s ease; }
+
+html[data-theme="forest"] .band[data-id="forest"], html[data-theme="earth"] .band[data-id="earth"],
+html[data-theme="ocean"] .band[data-id="ocean"], html[data-theme="air"] .band[data-id="air"],
+html[data-theme="night"] .band[data-id="night"], html[data-theme="medito"] .band[data-id="medito"],
+html[data-theme="mono"] .band[data-id="mono"] { flex-grow: 6; }
+
+html[data-theme="forest"] .band[data-id="forest"] .band-name, html[data-theme="earth"] .band[data-id="earth"] .band-name,
+html[data-theme="ocean"] .band[data-id="ocean"] .band-name, html[data-theme="air"] .band[data-id="air"] .band-name,
+html[data-theme="night"] .band[data-id="night"] .band-name, html[data-theme="medito"] .band[data-id="medito"] .band-name,
+html[data-theme="mono"] .band[data-id="mono"] .band-name { opacity: 0; }
+
+html[data-theme="forest"] .band[data-id="forest"] .band-detail, html[data-theme="earth"] .band[data-id="earth"] .band-detail,
+html[data-theme="ocean"] .band[data-id="ocean"] .band-detail, html[data-theme="air"] .band[data-id="air"] .band-detail,
+html[data-theme="night"] .band[data-id="night"] .band-detail, html[data-theme="medito"] .band[data-id="medito"] .band-detail,
+html[data-theme="mono"] .band[data-id="mono"] .band-detail { opacity: 1; }
+
+html[data-theme="forest"] .shot-forest, html[data-theme="earth"] .shot-earth, html[data-theme="ocean"] .shot-ocean,
+html[data-theme="air"] .shot-air, html[data-theme="night"] .shot-night, html[data-theme="medito"] .shot-medito,
+html[data-theme="mono"] .shot-mono { opacity: 1; }
+
+@layer components {
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 9999px; padding: 0.85rem 1.7rem; font-weight: 600;
+    transition: transform 0.15s, background-color 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover { transform: translateY(-1px); }
+  .btn-ghost { border: 1px solid color-mix(in srgb, var(--ink) 35%, transparent); }
+  .btn-ghost:hover { background: color-mix(in srgb, var(--ink) 10%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+}
