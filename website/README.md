@@ -15,20 +15,16 @@ npm run build    # static site in out/
 - **Hosting:** `out/` is plain static files, so any static host works. For a sub-path such as GitHub Pages, build with `NEXT_PUBLIC_BASE_PATH=/gazewell npm run build`.
 - **`public/_headers`** sets caching and security headers on Cloudflare Pages.
 
-## Deploying to Cloudflare Pages
-Every push to `main` builds the site and deploys it through [`.github/workflows/website.yml`](../.github/workflows/website.yml). It needs two repository secrets, set once:
+## Deploying to Cloudflare
+Cloudflare builds and deploys the site itself whenever `main` changes (Git integration, no GitHub workflow). It reads two files here: [`wrangler.jsonc`](wrangler.jsonc), which serves `out/` as static assets, and [`.node-version`](.node-version), which picks Node 22.
 
-1. In Cloudflare, go to **My Profile → API Tokens → Create Token → Create Custom Token**, give it the permission **Account → Cloudflare Pages → Edit**, and copy the token.
-2. Copy your **Account ID** from the Workers & Pages page of the dashboard.
-3. Add both as secrets (each command prompts for the value, so nothing lands in your shell history):
+Set it up once in the Cloudflare dashboard:
 
-   ```sh
-   gh secret set CLOUDFLARE_API_TOKEN
-   gh secret set CLOUDFLARE_ACCOUNT_ID
-   ```
+1. **Workers & Pages → Create application → Import a repository**, and choose `dhri-yama/gazewell`.
+2. Set the **Worker name** to `gazewell`. It must match `name` in `wrangler.jsonc`.
+3. Set the **Root directory** to `website`, the **Build command** to `npm run build`, and keep the **Deploy command** as `npx wrangler deploy`. The production branch is `main`.
+4. Save and deploy. After that, every push to `main` triggers a new build and deployment, and the dashboard shows the live address.
 
-4. Push to `main`, or run **Actions → Deploy website → Run workflow**. The first run creates the Pages project and prints the `*.pages.dev` address.
+The build reads `../VERSION` (for the version and download link), so it needs the whole repository checked out. Cloudflare does this, and only uses the root directory as the working folder.
 
-Until the secrets exist, the workflow runs, shows a warning and deploys nothing. The Pages project is named `gazewell` (so `gazewell.pages.dev`); if that name is taken, set a repository variable `CLOUDFLARE_PAGES_PROJECT` to another name. Add a custom domain later under the project's **Custom domains** tab.
-
-This folder is not part of the macOS app. `bundle.sh` and `dmg.sh` build only the Swift sources, so nothing in here ends up in `Gazewell.app` or the DMG.
+To check the config without deploying: `npm run build && npx wrangler deploy --dry-run`.

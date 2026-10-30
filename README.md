@@ -84,7 +84,7 @@ Global shortcuts: ⌃⌥B start a break, ⌃⌥S skip next, ⌃⌥P turn breaks 
 
 ## Website
 The marketing site lives in [`website/`](website) (Next.js and Tailwind, static export). It is separate from the app: the DMG and the app bundle contain only the compiled Swift code.
-Pushes to `main` deploy it to Cloudflare Pages through GitHub Actions (setup steps in [`website/README.md`](website/README.md)).
+It is deployed to Cloudflare, which rebuilds it on every push to `main` (setup in [`website/README.md`](website/README.md)).
 
 ## Versioning
 Gazewell follows [Semantic Versioning](https://semver.org/). The single source of truth is the `VERSION` file; `bundle.sh` stamps it into the app, so it shows in Settings → About.

@@ -1,0 +1,10 @@
+{
+  // Cloudflare Workers (static assets): serves the exported site from ./out.
+  // The name must match the Worker's name in the Cloudflare dashboard.
+  "name": "gazewell",
+  "compatibility_date": "2026-10-30",
+  "assets": {
+    "directory": "./out",
+    "not_found_handling": "404-page"
+  }
+}
