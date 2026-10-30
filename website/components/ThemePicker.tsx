@@ -4,10 +4,10 @@ import { THEMES } from "@/lib/themes";
 import { setTheme, useTheme } from "./use-theme";
 
 /** Seven small dots in the header; each shows its own accent colour on its own backdrop. */
-export function ThemeDots() {
+export function ThemeDots({ className = "flex" }: { className?: string }) {
   const current = useTheme();
   return (
-    <div role="group" aria-label="Theme" className="flex items-center gap-1.5">
+    <div role="group" aria-label="Theme" className={`${className} items-center gap-1.5`}>
       {THEMES.map((t) => (
         <button
           key={t.id}

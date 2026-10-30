@@ -41,25 +41,37 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-ink/10 bg-bg/85 backdrop-blur-md">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <a href="#" className="font-display text-2xl font-semibold tracking-tight">Gazewell</a>
-        <nav aria-label="Main" className="hidden items-center gap-8 text-[0.95rem] md:flex">
+        <nav aria-label="Main" className="hidden items-center gap-8 text-[0.95rem] lg:flex">
           <a className="hover:underline" href="#themes">Themes</a>
           <a className="hover:underline" href="#features">Features</a>
           <a className="hover:underline" href="#install">Install</a>
           <a className="hover:underline" href={repoUrl}>GitHub</a>
         </nav>
         <div className="flex items-center gap-4">
-          <ThemeDots />
+          <ThemeDots className="hidden sm:flex" />
           <a
             href={coffeeUrl}
             aria-label="Buy me a coffee"
-            className="inline-flex items-center gap-2 rounded-full border border-ink/35 px-3 py-2 text-[0.9rem] font-semibold transition-colors hover:bg-ink/10 sm:px-4"
+            className="hidden items-center gap-2 rounded-full border border-ink/35 px-3 py-2 text-[0.9rem] font-semibold transition-colors hover:bg-ink/10 sm:inline-flex xl:px-4"
           >
             <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 9h11v5a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5V9Z" />
               <path d="M16 10.5h1.5a2.5 2.5 0 0 1 0 5H15.5" />
               <path d="M8.5 3.5c0 1.2-1 1.3-1 2.5M12 3.5c0 1.2-1 1.3-1 2.5" />
             </svg>
-            <span className="hidden sm:inline">Buy me a coffee</span>
+            <span className="hidden xl:inline">Buy me a coffee</span>
+          </a>
+          <a
+            href={dmgUrl}
+            aria-label="Download Gazewell for macOS"
+            className="btn btn-primary gap-2 !px-3 !py-2 text-[0.9rem] sm:!px-4"
+          >
+            <svg aria-hidden viewBox="0 0 24 24" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 4v11" />
+              <path d="m7 11 5 5 5-5" />
+              <path d="M5 20h14" />
+            </svg>
+            <span className="hidden sm:inline">Download</span>
           </a>
         </div>
         </div>
