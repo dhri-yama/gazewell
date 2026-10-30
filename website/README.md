@@ -15,16 +15,23 @@ npm run build    # static site in out/
 - **Hosting:** `out/` is plain static files, so any static host works. For a sub-path such as GitHub Pages, build with `NEXT_PUBLIC_BASE_PATH=/gazewell npm run build`.
 - **`public/_headers`** sets caching and security headers on Cloudflare Pages.
 
-## Deploying to Cloudflare
-Cloudflare builds and deploys the site itself whenever `main` changes (Git integration, no GitHub workflow). It reads two files here: [`wrangler.jsonc`](wrangler.jsonc), which serves `out/` as static assets, and [`.node-version`](.node-version), which picks Node 22.
+## Deploying to Cloudflare Pages
+Cloudflare builds and deploys the site itself whenever `main` changes (Git integration, no GitHub workflow). Set it up once in the dashboard under **Workers & Pages → Create → Pages → Import an existing Git repository**, choose `dhri-yama/gazewell`, then fill in:
 
-Set it up once in the Cloudflare dashboard:
+| Field | Value |
+| --- | --- |
+| Production branch | `main` |
+| Framework preset | Next.js (Static HTML Export) |
+| Build command | `npm run build` |
+| Build output directory | `out` |
+| Root directory (advanced) → Path | `website` |
+| Environment variables | none needed |
 
-1. **Workers & Pages → Create application → Import a repository**, and choose `dhri-yama/gazewell`.
-2. Set the **Worker name** to `gazewell`. It must match `name` in `wrangler.jsonc`.
-3. Set the **Root directory** to `website`, the **Build command** to `npm run build`, and keep the **Deploy command** as `npx wrangler deploy`. The production branch is `main`.
-4. Save and deploy. After that, every push to `main` triggers a new build and deployment, and the dashboard shows the live address.
+After **Save and Deploy**, every push to `main` triggers a new build and deployment, and the project shows its `*.pages.dev` address.
 
-The build reads `../VERSION` (for the version and download link), so it needs the whole repository checked out. Cloudflare does this, and only uses the root directory as the working folder.
+- **Node version:** [`.node-version`](.node-version) (22) lives in the root directory, which Pages reads. If a build ever picks the wrong Node, add an environment variable `NODE_VERSION` = `22`.
+- **`wrangler.jsonc`:** this is the Cloudflare Workers (static assets) config. Pages ignores it for production (it may print a warning about a missing `pages_build_output_dir`). It is there for moving to Workers later. Delete it if a Pages build complains about it.
+- **`../VERSION`:** the build reads it for the version and download link, so it needs the whole repository, which Cloudflare checks out. The root directory only sets the working folder.
+- **`public/_headers`** sets caching and security headers.
 
-To check the config without deploying: `npm run build && npx wrangler deploy --dry-run`.
+Check the output locally with `npm run build`, then serve `out/`.
