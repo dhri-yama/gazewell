@@ -38,7 +38,8 @@ const h2 = "font-display text-[clamp(2rem,4.6vw,3.3rem)] leading-[1.1] tracking-
 export default function Home() {
   return (
     <>
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-5">
+      <header className="sticky top-0 z-50 border-b border-ink/10 bg-bg/85 backdrop-blur-md">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-6 px-6 py-4">
         <a href="#" className="font-display text-2xl font-semibold tracking-tight">Gazewell</a>
         <nav aria-label="Main" className="hidden items-center gap-8 text-[0.95rem] md:flex">
           <a className="hover:underline" href="#themes">Themes</a>
@@ -60,6 +61,7 @@ export default function Home() {
             </svg>
             <span className="hidden sm:inline">Buy me a coffee</span>
           </a>
+        </div>
         </div>
       </header>
 
@@ -100,7 +102,7 @@ export default function Home() {
           </figure>
         </section>
 
-        <section id="themes" className="mx-auto w-full max-w-6xl scroll-mt-8 px-6 py-24 md:py-32">
+        <section id="themes" className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 py-24 md:py-32">
           <h2 className={`${h2} max-w-[20ch]`}>Seven themes. Pick one and this whole page changes.</h2>
           <p className="mt-5 max-w-[56ch] text-lg text-ink/80">
             Each theme recolours the app and plays its own scene on the break screen: a tree that grows, stones that stack, water that rises.
@@ -110,7 +112,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-8 px-6 pb-24 md:pb-32">
+        <section id="features" className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 pb-24 md:pb-32">
           <h2 className={`${h2} max-w-[18ch]`}>Built to stay out of your way</h2>
           <dl className="mt-12">
             {features.map(([title, body]) => (
@@ -160,7 +162,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="install" className="mx-auto w-full max-w-6xl scroll-mt-8 px-6 pb-24 md:pb-32">
+        <section id="install" className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 pb-24 md:pb-32">
           <h2 className={h2}>Get Gazewell</h2>
           <div className="mt-10 grid gap-10 md:grid-cols-2 md:gap-14">
             <div>
@@ -187,7 +189,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="faq" className="mx-auto w-full max-w-6xl scroll-mt-8 px-6 pb-24 md:pb-32">
+        <section id="faq" className="mx-auto w-full max-w-6xl scroll-mt-24 px-6 pb-24 md:pb-32">
           <h2 className={h2}>Questions</h2>
           <div className="mt-10 max-w-3xl border-b border-ink/15">
             {faq.map(([q, a]) => (
